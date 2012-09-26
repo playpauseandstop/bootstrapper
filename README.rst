@@ -20,7 +20,7 @@ Requirements
   needed for Python 2.6)
 * `virtualenv-clone <http://pypi.python.org/pypi/virtualenv-clone>`_
   (*optional*, needed only when you want to create virtual environments for
-  minor requirements as copy of major virtual environment.)
+  minor requirements as copy of major virtual environment)
 
 Installation
 ============

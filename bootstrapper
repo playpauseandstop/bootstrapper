@@ -8,7 +8,6 @@ import subprocess
 import sys
 
 from ConfigParser import Error as ConfigParserError, SafeConfigParser
-from argparse import ArgumentParser
 from distutils.util import strtobool
 
 
@@ -255,9 +254,11 @@ def parse_args(args):
     Parse args from command line by creating argument parser instance and
     process it.
     """
+    from argparse import ArgumentParser
+
     description = 'Bootstrap Python projects with virtualenv and pip.'
-    parser = ArgumentParser(description=description,
-                            version=__version__)
+    parser = ArgumentParser(description=description)
+    parser.add_argument('--version', action='version', version=__version__)
 
     parser.add_argument(
         '-c', '--config', default=DEFAULT_CONFIG, dest='config',

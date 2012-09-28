@@ -2,7 +2,7 @@
 bootstrapper
 ============
 
-Bootstrap Python project by creating virtual environment, installing all
+Bootstrap Python projects by creating virtual environment, installing all
 requirements there and execute post-bootstrap hooks if any.
 
 Also supported creating virtual environments not only for default
@@ -28,6 +28,12 @@ Installation
 As easy as::
 
     # pip install bootstrapper
+
+License
+=======
+
+``bootstrapper`` is licensed under the `BSD License
+<https://github.com/playpauseandstop/bootstrapper/blob/master/LICENSE>`_.
 
 Configuration
 =============
@@ -100,3 +106,68 @@ Usage
       --only-major          Create only major virtual environment, ignore all
                             other requirements files.
       -q, --quiet           Minimize output, show only error messages.
+
+Examples
+========
+
+Project case
+------------
+
+In common only one requirements file exists in the project, and for most
+cases something like ``settings_local.py.def`` should be copied to proper
+location after creating virtual environment and installing requirements. So,
+project tree could look this::
+
+    .
+    ├── README.rst
+    ├── requirements.txt
+    └── project
+        ├── __init__.py
+        ├── app.py
+        ├── static
+        ├── templates
+        ├── settings.py
+        ├── settings_local.py.def
+        ├── tests.py
+        └── views.py
+
+In that case you can easilly bootstrap project with::
+
+    $ bootstrapper -C 'cp -n project/settings_local.py{{.def,}}'
+
+This will create ``env/`` virtual environment, install there all requirements
+from ``requirements.txt`` and finally copy default file to
+``settings_local.py`` if it not exists.
+
+Application case
+----------------
+
+For applications otherwise it's good idea to have several requirements files,
+to support testing on different requirement versions. For example, next
+application has default requirements and requirements for ``Flask==0.8``,
+
+::
+
+    .
+    ├── README.rst
+    └── application
+        └── ...
+    ├── setup.py
+    └── testapp
+        ├── app.py
+        ├── requirements.txt
+        ├── requirements-0.8.txt
+        ├── tests.py
+        └── views.py
+
+And in that case bootstrapping test app would be looking like::
+
+    $ cd testapp/ && bootstrapper
+
+This will create ``env/`` and ``env-0.8/`` environments and install there
+requirements from ``requirements.txt`` and ``requirements-0.8.txt`` apparently.
+
+In case if you want to create/update enviroment only for ``0.8`` minor
+requirement, you need to::
+
+    $ cd testapp/ && bootstrapper 0.8

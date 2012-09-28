@@ -171,3 +171,12 @@ In case if you want to create/update enviroment only for ``0.8`` minor
 requirement, you need to::
 
     $ cd testapp/ && bootstrapper 0.8
+
+More examples
+-------------
+
+Bootstrapper used in next my open source projects:
+
+* `Learn Python <https://github.com/playpauseandstop/learnpython.in.ua>`_
+* `Flask-Dropbox <https://github.com/playpauseandstop/Flask-Dropbox>`_
+* `Flask-And-Redis <https://github.com/playpauseandstop/Flask-And-Redis>`_

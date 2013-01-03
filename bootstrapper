@@ -14,12 +14,12 @@ from distutils.util import strtobool
 __author__ = 'Igor Davydenko'
 __license__ = 'BSD License'
 __script__ = 'bootstrapper'
-__version__ = '0.1'
+__version__ = '0.1.1'
 
 
 CONFIG = {
     __script__: {},
-    'pip': {'download_cache': '{env}/src/'},
+    'pip': {'download_cache': '{env}/src/', 'use_mirrors': True},
     'virtualenv': {'distribute': True}
 }
 DEFAULT_CONFIG = 'bootstrap.cfg'
@@ -224,11 +224,13 @@ def main():
     config = read_config(args.config, args)
     bootstrap = config[__script__]
 
-    if bootstrap['pre_requirements']:
-        for requirement in bootstrap['pre_requirements']:
-            if not run_cmd('which {0}'.format(requirement), **run_kwargs):
-                error('Requirement {0!r} is not found in system'.
-                      format(requirement))
+    if not 'virtualenv' in bootstrap['pre_requirements']:
+        bootstrap['pre_requirements'].append('virtualenv')
+
+    for requirement in bootstrap['pre_requirements']:
+        if not run_cmd('which {0}'.format(requirement), **run_kwargs):
+            error('Requirement {0!r} is not found in system'.
+                  format(requirement))
 
     if bootstrap['only_major']:
         dest = [(bootstrap['dest'], bootstrap['requirements'])]
@@ -275,7 +277,7 @@ def parse_args(args):
         help='Path to major requirements file. By default: {0}'.
              format(DEFAULT_REQUIREMENTS))
     parser.add_argument(
-        '-p', '--pre-requirements', default=None,
+        '-p', '--pre-requirements', default=[],
         dest='pre_requirements', nargs='+',
         help='List pre-requirements to check separated by space.'
     )

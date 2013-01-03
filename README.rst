@@ -180,3 +180,17 @@ Bootstrapper used in next my open source projects:
 * `Learn Python <https://github.com/playpauseandstop/learnpython.in.ua>`_
 * `Flask-Dropbox <https://github.com/playpauseandstop/Flask-Dropbox>`_
 * `Flask-And-Redis <https://github.com/playpauseandstop/Flask-And-Redis>`_
+
+Changelog
+=========
+
+0.1.1
+-----
+
++ Use ``--use-mirrors`` key by default when ``pip`` installs requirements to
+  virtual environment.
+
+0.1
+---
+
+- Initial release.

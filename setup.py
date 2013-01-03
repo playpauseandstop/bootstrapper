@@ -4,7 +4,7 @@ import imp
 import os
 import sys
 
-from distutils.core import setup
+from setuptools import setup
 
 
 DIRNAME = os.path.abspath(os.path.dirname(__file__))
@@ -30,6 +30,7 @@ setup(
     author_email='playpauseandstop@gmail.com',
     url='https://github.com/playpauseandstop/bootstrapper',
     scripts=['bootstrapper'],
+    test_suite='tests',
     platforms='any',
     classifiers=[
         'Development Status :: 4 - Beta',

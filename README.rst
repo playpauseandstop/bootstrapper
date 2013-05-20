@@ -184,6 +184,12 @@ Bootstrapper used in next my open source projects:
 Changelog
 =========
 
+0.1.2
+-----
+
++ Make ability to reuse cached pip files by storing them in ``~/.bootstrapper``
+  user directory by default.
+
 0.1.1
 -----
 

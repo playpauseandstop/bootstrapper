@@ -184,6 +184,13 @@ Bootstrapper used in next my open source projects:
 Changelog
 =========
 
+0.1.3
+-----
+
+- Disable ``--use-mirrors`` key by default for installing requirements via
+  ``pip`` cause of latest `PyPI CDN changes
+  <https://twitter.com/pythonpackaging/status/339143339356061696>`_.
+
 0.1.2
 -----
 

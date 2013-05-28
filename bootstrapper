@@ -14,17 +14,16 @@ from distutils.util import strtobool
 __author__ = 'Igor Davydenko'
 __license__ = 'BSD License'
 __script__ = 'bootstrapper'
-__version__ = '0.1.2'
+__version__ = '0.1.3'
 
 
 CONFIG = {
     __script__: {},
     'pip': {
         'download_cache': '~/.{0}/pip-cache/'.format(__script__),
-        'use_mirrors': True
     },
     'virtualenv': {
-        'distribute': True
+        'distribute': True,
     }
 }
 DEFAULT_CONFIG = 'bootstrap.cfg'

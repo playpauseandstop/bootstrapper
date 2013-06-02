@@ -58,7 +58,7 @@ by setting it in ``bootstrap.cfg`` file. For example::
 By default, next configuration would be used::
 
     [pip]
-    download_cache = {env}/src/
+    download_cache = ~/.bootstrapper/pip-cache/
 
     [virtualenv]
     distribute = True

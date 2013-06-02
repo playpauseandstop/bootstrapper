@@ -2,6 +2,12 @@
 bootstrapper
 ============
 
+.. image:: https://travis-ci.org/playpauseandstop/bootstrapper.png?branch=master
+    :target: https://travis-ci.org/playpauseandstop/bootstrapper
+
+.. image:: https://pypip.in/v/bootstrapper/badge.png
+    :target: https://crate.io/packages/bootstrapper
+
 Bootstrap Python projects by creating virtual environment, installing all
 requirements there and execute post-bootstrap hooks if any.
 
@@ -16,8 +22,6 @@ Requirements
 
 * `Python <http://www.python.org/>`_ 2.6 or 2.7
 * `virtualenv <http://www.virtualenv.org/>`_ 1.7 or higher
-* `argparse <http://pypi.python.org/pypi/argparse>`_ (*optional*, only
-  needed for Python 2.6)
 * `virtualenv-clone <http://pypi.python.org/pypi/virtualenv-clone>`_
   (*optional*, needed only when you want to create virtual environments for
   minor requirements as copy of major virtual environment)

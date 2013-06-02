@@ -6,7 +6,11 @@ import re
 import subprocess
 import sys
 
-from ConfigParser import Error as ConfigParserError, SafeConfigParser
+try:
+    from configparser import Error as ConfigParserError, SafeConfigParser
+except ImportError:
+    from ConfigParser import Error as ConfigParserError, SafeConfigParser
+
 from distutils.util import strtobool
 
 

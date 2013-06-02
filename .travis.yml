@@ -6,6 +6,7 @@ python:
  - "3.3"
  - "pypy"
 install:
+ - "python setup.py install"
  - "pip install pep8==1.4.5 pyflakes==0.7.2"
 script:
  - "pep8 --statistics *.py"

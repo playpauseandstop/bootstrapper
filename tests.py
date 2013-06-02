@@ -2,11 +2,13 @@
 
 import os
 import subprocess
+import sys
 import tempfile
 import unittest
 
 
 DIRNAME = os.path.abspath(os.path.dirname(__file__))
+IS_PY3 = sys.version_info[0] == 3
 
 
 class TestBootstrapper(unittest.TestCase):
@@ -65,6 +67,9 @@ class TestBootstrapper(unittest.TestCase):
         terr.seek(0)
         err = terr.read()
         terr.close()
+
+        if IS_PY3:
+            out, err = str(out), str(err)
 
         return out, err
 

@@ -14,7 +14,7 @@ from distutils.util import strtobool
 __author__ = 'Igor Davydenko'
 __license__ = 'BSD License'
 __script__ = 'bootstrapper'
-__version__ = '0.1.3'
+__version__ = '0.1.4'
 
 
 CONFIG = {
@@ -429,7 +429,7 @@ def run_cmd(cmd, call=True, echo=False, fail_silently=False):
 
     try:
         retcode = method(cmd, **kwargs)
-    except subprocess.CalledProcessError, e:
+    except subprocess.CalledProcessError as e:
         if fail_silently:
             return False
         error(unicode(e))

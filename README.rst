@@ -184,6 +184,11 @@ Bootstrapper used in next my open source projects:
 Changelog
 =========
 
+0.1.4
+-----
+
++ Support Python 3 versions
+
 0.1.3
 -----
 

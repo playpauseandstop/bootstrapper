@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
-import imp
 import os
+import re
 import sys
 
 from setuptools import setup
@@ -10,27 +10,19 @@ from setuptools import setup
 DIRNAME = os.path.abspath(os.path.dirname(__file__))
 rel = lambda *parts: os.path.abspath(os.path.join(DIRNAME, *parts))
 
-kwargs = \
-    {'install_requires': ['argparse']} if sys.version_info < (2, 7) else {}
+README = open(rel('README.rst')).read()
+INIT_PY = open(rel('bootstrapper.py')).read()
+VERSION = re.findall("__version__ = '([^']+)'", INIT_PY)[0]
 
-handler = open(rel('README.rst'))
-README = handler.read()
-handler.close()
-
-module = imp.load_source('bootstrapper', rel('bootstrapper'))
-version = module.__version__
-os.unlink(rel('bootstrapperc'))
 
 setup(
     name='bootstrapper',
-    version=version,
+    version=VERSION,
     description='Bootstrap Python projects with virtualenv and pip.',
     long_description=README,
     author='Igor Davydenko',
     author_email='playpauseandstop@gmail.com',
     url='https://github.com/playpauseandstop/bootstrapper',
-    scripts=['bootstrapper'],
-    test_suite='tests',
     platforms='any',
     classifiers=[
         'Development Status :: 4 - Beta',
@@ -47,5 +39,15 @@ setup(
     ],
     keywords='bootstrap pip virtualenv',
     license='BSD License',
-    **kwargs
+    entry_points={
+        'console_scripts': {
+            'bootstrapper=bootstrapper:main',
+            'bootstrapper-{0}.{1}=bootstrapper.main'.
+            format(*sys.version_info[:2]),
+        }
+    },
+    install_requires=list(filter(None, [
+        'argparse' if sys.version_info[:2] < (2, 7) else None,
+    ])),
+    test_suite='tests',
 )

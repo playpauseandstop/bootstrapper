@@ -56,9 +56,9 @@ class TestBootstrapper(unittest.TestCase):
     def run_cmd(self, cmd=None):
         tout, terr = tempfile.TemporaryFile(), tempfile.TemporaryFile()
 
-        cmd = cmd or './bootstrapper'
+        cmd = cmd or './bootstrapper.py'
         kwargs = {'shell': True, 'stdout': tout, 'stderr': terr}
-        code = subprocess.call('cd {0} && {1}'.format(DIRNAME, cmd), **kwargs)
+        subprocess.call('cd {0} && {1}'.format(DIRNAME, cmd), **kwargs)
 
         tout.seek(0)
         out = tout.read()

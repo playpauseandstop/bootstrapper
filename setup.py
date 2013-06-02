@@ -49,6 +49,9 @@ setup(
     install_requires=list(filter(None, [
         'argparse==1.2.1' if sys.version_info[:2] < (2, 7) else None,
     ])),
+    py_modules=[
+        'bootstrapper'
+    ],
     test_suite='tests',
     tests_require=list(filter(None, [
         'unittest2==0.5.1' if sys.version_info[:2] < (2, 7) else None,

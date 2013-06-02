@@ -7,8 +7,7 @@ python:
  - "pypy"
 install:
  - "python setup.py install"
- - "pip install pep8==1.4.5 pyflakes==0.7.2"
+ - "pip install pep8==1.4.5"
 script:
  - "pep8 --statistics *.py"
- - "pyflakes *.py | grep -v 'basestring\|unicode' && exit 1"
  - "python setup.py test"

@@ -70,7 +70,7 @@ class Environment(object):
         if not self.bootstrap['quiet']:
             print('== Step 1. Create virtual environment ==')
 
-        if self.is_minor and self.bootstrap['copy_virtualenv']:
+        if self.is_minor and self.bootstrap.get('copy_virtualenv'):
             if not os.path.isdir(self.env):
                 cmd = 'virtualenv-clone {0} {1}'.\
                       format(self.bootstrap['env'], self.env)

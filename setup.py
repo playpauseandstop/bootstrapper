@@ -40,14 +40,17 @@ setup(
     keywords='bootstrap pip virtualenv',
     license='BSD License',
     entry_points={
-        'console_scripts': {
+        'console_scripts': [
             'bootstrapper=bootstrapper:main',
             'bootstrapper-{0}.{1}=bootstrapper.main'.
             format(*sys.version_info[:2]),
-        }
+        ]
     },
     install_requires=list(filter(None, [
-        'argparse' if sys.version_info[:2] < (2, 7) else None,
+        'argparse==1.2.1' if sys.version_info[:2] < (2, 7) else None,
     ])),
     test_suite='tests',
+    tests_require=list(filter(None, [
+        'unittest2==0.5.1' if sys.version_info[:2] < (2, 7) else None,
+    ]))
 )

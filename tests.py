@@ -4,7 +4,11 @@ import os
 import subprocess
 import sys
 import tempfile
-import unittest
+
+try:
+    import unittest2 as unittest
+except ImportError:
+    import unittest
 
 
 DIRNAME = os.path.abspath(os.path.dirname(__file__))

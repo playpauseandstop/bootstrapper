@@ -439,7 +439,7 @@ def run_cmd(cmd, call=True, echo=False, fail_silently=False):
     except subprocess.CalledProcessError as e:
         if fail_silently:
             return False
-        error(unicode(e))
+        error(str(e) if IS_PY3 else unicode(e))
 
     if call and retcode and not fail_silently:
         error('Command {0!r} returned non-zero exit status {1}'.

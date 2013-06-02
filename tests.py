@@ -65,27 +65,10 @@ class TestBootstrapper(unittest.TestCase):
     def run_cmd(self, cmd=None):
         encoding = locale.getdefaultlocale()[1]
         tout, terr = tempfile.TemporaryFile(), tempfile.TemporaryFile()
-        kwargs = {'stdout': tout, 'stderr': terr}
 
-        subprocess.check_call(['python', '--version'], **kwargs)
-        terr.seek(0)
-        version = terr.read().decode(encoding).split(' ')[-1]
-        terr.close()
-
-        terr = kwargs['stderr'] = tempfile.TemporaryFile()
-        major = int(version.split('.')[0])
-
-        if bootstrapper.IS_PY3 and major != 3:
-            python = 'python3'
-        elif not bootstrapper.IS_PY3 and major != 2:
-            python = 'python2'
-        else:
-            python = 'python'
-
-        cmd = cmd or '{0} ./bootstrapper.py'.format(python)
-        subprocess.call('cd {0} && {1}'.format(DIRNAME, cmd),
-                        shell=True,
-                        **kwargs)
+        cmd = cmd or 'bootstrapper-{0}.{1}'.format(*sys.version_info[:2])
+        kwargs = {'shell': True, 'stdout': tout, 'stderr': terr}
+        subprocess.call('cd {0} && {1}'.format(DIRNAME, cmd), **kwargs)
 
         tout.seek(0)
         out = tout.read().decode(encoding)

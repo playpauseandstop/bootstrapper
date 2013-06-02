@@ -42,7 +42,7 @@ setup(
     entry_points={
         'console_scripts': [
             'bootstrapper=bootstrapper:main',
-            'bootstrapper-{0}.{1}=bootstrapper.main'.
+            'bootstrapper-{0}.{1}=bootstrapper:main'.
             format(*sys.version_info[:2]),
         ]
     },

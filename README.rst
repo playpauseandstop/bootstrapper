@@ -188,6 +188,13 @@ Bootstrapper used in next my open source projects:
 Changelog
 =========
 
+0.1.5
+-----
+
++ Real support of Python 3 versions
++ Enable Travis CI support
++ Refactor bootstrapper to Python module
+
 0.1.4
 -----
 

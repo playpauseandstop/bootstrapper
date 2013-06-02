@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import locale
 import os
 import subprocess
 import sys
@@ -10,9 +11,10 @@ try:
 except ImportError:
     import unittest
 
+import bootstrapper
+
 
 DIRNAME = os.path.abspath(os.path.dirname(__file__))
-IS_PY3 = sys.version_info[0] == 3
 
 
 class TestBootstrapper(unittest.TestCase):
@@ -23,6 +25,12 @@ class TestBootstrapper(unittest.TestCase):
     prefix = ''
 
     def tearDown(self):
+        if hasattr(self, 'old_stdout'):
+            sys.stdout = self.old_stdout
+
+        if hasattr(self, 'old_stderr'):
+            sys.stderr = self.old_stderr
+
         files = set([self.default_config, self.default_requirements,
                      self.default_venv, self.config, self.requirements,
                      self.venv])
@@ -35,9 +43,6 @@ class TestBootstrapper(unittest.TestCase):
     @config.setter
     def config(self, value):
         setattr(self, '_config', value)
-
-    def init_config(self, **content):
-        pass
 
     def init_requirements(self, *lines):
         with open(self.requirements, 'w+') as handler:
@@ -58,22 +63,37 @@ class TestBootstrapper(unittest.TestCase):
         return self.default_requirements
 
     def run_cmd(self, cmd=None):
+        encoding = locale.getdefaultlocale()[1]
         tout, terr = tempfile.TemporaryFile(), tempfile.TemporaryFile()
+        kwargs = {'stdout': tout, 'stderr': terr}
 
-        cmd = cmd or './bootstrapper.py'
-        kwargs = {'shell': True, 'stdout': tout, 'stderr': terr}
-        subprocess.call('cd {0} && {1}'.format(DIRNAME, cmd), **kwargs)
+        subprocess.check_call(['python', '--version'], **kwargs)
+        terr.seek(0)
+        version = terr.read().decode(encoding).split(' ')[-1]
+        terr.close()
+
+        terr = kwargs['stderr'] = tempfile.TemporaryFile()
+        major = int(version.split('.')[0])
+
+        if bootstrapper.IS_PY3 and major != 3:
+            python = 'python3'
+        elif not bootstrapper.IS_PY3 and major != 2:
+            python = 'python2'
+        else:
+            python = 'python'
+
+        cmd = cmd or '{0} ./bootstrapper.py'.format(python)
+        subprocess.call('cd {0} && {1}'.format(DIRNAME, cmd),
+                        shell=True,
+                        **kwargs)
 
         tout.seek(0)
-        out = tout.read()
+        out = tout.read().decode(encoding)
         tout.close()
 
         terr.seek(0)
-        err = terr.read()
+        err = terr.read().decode(encoding)
         terr.close()
-
-        if IS_PY3:
-            out, err = str(out), str(err)
 
         return out, err
 

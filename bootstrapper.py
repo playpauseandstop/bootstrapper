@@ -32,8 +32,12 @@ CONFIG = {
 DEFAULT_CONFIG = 'bootstrap.cfg'
 DEFAULT_ENV = 'env'
 DEFAULT_REQUIREMENTS = 'requirements.txt'
+IS_PY3 = sys.version_info[0] == 3
 REQUIREMENTS_RE = \
     lambda pre, post: re.compile(r'{0}-(.*).{1}'.format(pre, post))
+
+iteritems = lambda seq: seq.items() if IS_PY3 else seq.iteritems()
+string_types = (bytes, str) if IS_PY3 else basestring
 
 
 class Environment(object):
@@ -138,11 +142,11 @@ class Environment(object):
                 'requirements': self.requirements}
         environ.update(data)
 
-        if isinstance(config, basestring):
+        if isinstance(config, string_types):
             config = config.format(**environ)
         else:
-            for key, value in config.iteritems():
-                if not isinstance(value, basestring):
+            for key, value in iteritems(config):
+                if not isinstance(value, string_types):
                     continue
                 config[key] = value.format(**environ)
 
@@ -169,7 +173,7 @@ def config_to_args(config):
     """
     result = []
 
-    for key, value in config.iteritems():
+    for key, value in iteritems(config):
         if value is False:
             continue
 
@@ -383,11 +387,11 @@ def read_config(filename, args):
 
                 config[section][key] = value
 
-    for section, data in default.iteritems():
+    for section, data in iteritems(default):
         if not section in config:
             config[section] = data
         else:
-            for key, value in data.iteritems():
+            for key, value in iteritems(data):
                 if not key in config[section]:
                     config[section][key] = value
 

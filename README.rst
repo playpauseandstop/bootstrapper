@@ -188,6 +188,11 @@ Bootstrapper used in next my open source projects:
 Changelog
 =========
 
+0.1.6
+-----
+
++ Initial support of MS Windows platform
+
 0.1.5
 -----
 

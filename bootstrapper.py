@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
+
 import copy
 import os
 import re
@@ -17,7 +19,7 @@ from distutils.util import strtobool
 __author__ = 'Igor Davydenko'
 __license__ = 'BSD License'
 __script__ = 'bootstrapper'
-__version__ = '0.1.5'
+__version__ = '0.1.6'
 
 
 CONFIG = {
@@ -33,8 +35,9 @@ DEFAULT_CONFIG = 'bootstrap.cfg'
 DEFAULT_ENV = 'env'
 DEFAULT_REQUIREMENTS = 'requirements.txt'
 IS_PY3 = sys.version_info[0] == 3
-REQUIREMENTS_RE = \
-    lambda pre, post: re.compile(r'{0}-(.*).{1}'.format(pre, post))
+REQUIREMENTS_RE = lambda pre, post: (
+    re.compile(r'{0}-(.*).{1}'.format(pre, post))
+)
 
 iteritems = lambda seq: seq.items() if IS_PY3 else seq.iteritems()
 string_types = (bytes, str) if IS_PY3 else basestring
@@ -80,10 +83,12 @@ class Environment(object):
 
         if self.is_minor and self.bootstrap.get('copy_virtualenv'):
             if not os.path.isdir(self.env):
-                cmd = 'virtualenv-clone {0} {1}'.\
-                      format(self.bootstrap['env'], self.env)
-        elif (self.bootstrap['recreate_virtualenv'] or
-              not os.path.isdir(self.env)):
+                cmd = ('virtualenv-clone {0} {1}'.
+                       format(self.bootstrap['env'], self.env))
+        elif (
+            self.bootstrap['recreate_virtualenv'] or
+            not os.path.isdir(self.env)
+        ):
             config = self.prepare_config(self.config['virtualenv'])
             args = ' '.join(config_to_args(config))
             cmd = 'virtualenv {0} {1}'.format(args, self.env)
@@ -96,7 +101,7 @@ class Environment(object):
             run_cmd(cmd, echo=not self.bootstrap['quiet'])
 
         if not self.bootstrap['quiet']:
-            print
+            print()
 
     def install_requirements(self):
         """
@@ -113,7 +118,7 @@ class Environment(object):
         run_cmd(cmd, echo=not self.bootstrap['quiet'])
 
         if not self.bootstrap['quiet']:
-            print
+            print()
 
     @property
     def is_major(self):
@@ -164,7 +169,7 @@ class Environment(object):
                 fail_silently=True)
 
         if not self.bootstrap['quiet']:
-            print
+            print()
 
 
 def config_to_args(config):
@@ -225,9 +230,7 @@ def main():
     install all requirements. And finally for main (or only) environment run
     post-bootstrap hook if any.
     """
-    run_kwargs = {'call': False, 'fail_silently': True}
-
-    if not run_cmd('which virtualenv', **run_kwargs):
+    if not which('virtualenv'):
         error('``virtualenv`` should be installed in system to continue')
 
     args = parse_args(sys.argv[1:])
@@ -235,11 +238,11 @@ def main():
     config = read_config(args.config, args)
     bootstrap = config[__script__]
 
-    if not 'virtualenv' in bootstrap['pre_requirements']:
-        bootstrap['pre_requirements'].append('virtualenv')
+    if 'virtualenv' in bootstrap['pre_requirements']:
+        bootstrap['pre_requirements'].remove('virtualenv')
 
     for requirement in bootstrap['pre_requirements']:
-        if not run_cmd('which {0}'.format(requirement), **run_kwargs):
+        if not which(requirement):
             error('Requirement {0!r} is not found in system'.
                   format(requirement))
 
@@ -302,7 +305,7 @@ def parse_args(args):
         help='Execute HOOK in each virtualenv, not only in major one.'
     )
 
-    if run_cmd('which virtualenv-clone', call=False, fail_silently=True):
+    if which('virtualenv-clone'):
         parser.add_argument(
             '--copy-virtualenv', action='store_true', default=False,
             dest='copy_virtualenv',
@@ -388,7 +391,7 @@ def read_config(filename, args):
                 config[section][key] = value
 
     for section, data in iteritems(default):
-        if not section in config:
+        if section not in config:
             config[section] = data
         else:
             for key, value in iteritems(data):
@@ -436,16 +439,25 @@ def run_cmd(cmd, call=True, echo=False, fail_silently=False):
 
     try:
         retcode = method(cmd, **kwargs)
-    except subprocess.CalledProcessError as e:
+    except subprocess.CalledProcessError as err:
         if fail_silently:
             return False
-        error(str(e) if IS_PY3 else unicode(e))
+        error(str(err) if IS_PY3 else unicode(err))
 
     if call and retcode and not fail_silently:
         error('Command {0!r} returned non-zero exit status {1}'.
               format(cmd, retcode))
 
     return not retcode if alt_retcode else retcode
+
+
+def which(executable):
+    """
+    Shortcut to check whether executable available in current environment or
+    not.
+    """
+    cmd = 'where' if sys.platform.startswith('win') else 'which'
+    return run_cmd(' '.join((cmd, executable)), call=False, fail_silently=True)
 
 
 if __name__ == '__main__':

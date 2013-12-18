@@ -97,17 +97,21 @@ Bootstrapper created as tool for installs Python projects, but time after time
 I needed to use it with libraries too, so from version 0.2 script check if
 passed requirements file exists on disk and if does just run,
 
+::
+
     $ pip install -r requirements.txt ...
 
 inside of created virtual environment. But if requirements file does not exist,
 script sends other arguments to ``pip``,
+
+::
 
     $ pip install -e . ...
 
 and this is all magic.
 
 So in pseudo-code installing Python library or project with bootstrapper is
-simple process of 4 steps:
+simple process of 4 steps::
 
     check_pre_requirements(list)
     create_virtual_environment(env)

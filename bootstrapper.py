@@ -141,7 +141,7 @@ def main(*args):
     hook if any.
     """
     # Create parser, read arguments from direct input or command line
-    args = parse_args(args)
+    args = parse_args(args or sys.argv[1:])
 
     # Initialize bootstrapper instance Read current config from file
     config = read_config(args.config, args)
@@ -387,4 +387,4 @@ def which(executable):
 
 
 if __name__ == '__main__':
-    sys.exit(int(not main(*sys.argv[1:])))
+    sys.exit(int(not main()))

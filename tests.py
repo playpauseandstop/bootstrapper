@@ -78,7 +78,8 @@ class TestBootstrapper(unittest.TestCase):
         self.assertTrue(os.path.isdir(self.venv))
 
         out, _ = self.run_cmd('pip freeze')
-        self.assertIn('#egg=bootstrapper-master', out)
+        self.assertIn('playpauseandstop/bootstrapper.git@', out)
+        self.assertIn('#egg=bootstrapper-', out)
 
     def test_project_bootstrap(self):
         self.assertFalse(os.path.isdir(self.venv))

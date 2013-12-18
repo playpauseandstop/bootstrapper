@@ -8,23 +8,14 @@ bootstrapper
 .. image:: https://pypip.in/v/bootstrapper/badge.png
     :target: https://crate.io/packages/bootstrapper
 
-Bootstrap Python projects by creating virtual environment, installing all
-requirements there and execute post-bootstrap hooks if any.
-
-Also supported creating virtual environments not only for default
-requirements file (named *major*, by default: ``requirements.txt``), but
-for any other files (named *minor*), which matched mask
-``requirements-(.*).txt``, where ``requirements`` and ``txt`` could be
-changed manually if not default requirements file would be used.
+Bootstrap Python projects or libraries by checking system pre-requirements if
+necessary, creating virtual environment, installing all requirements there and
+finally execute post-bootstrap hooks if any.
 
 Requirements
 ============
 
-* `Python <http://www.python.org/>`_ 2.6 or 2.7
-* `virtualenv <http://www.virtualenv.org/>`_ 1.7 or higher
-* `virtualenv-clone <http://pypi.python.org/pypi/virtualenv-clone>`_
-  (*optional*, needed only when you want to create virtual environments for
-  minor requirements as copy of major virtual environment)
+* `Python <http://www.python.org/>`_ 2.6, 2.7, 3.2+
 
 Installation
 ============
@@ -46,26 +37,27 @@ You may configure any option of ``bootstrapper``, ``virtualenv`` and ``pip``
 by setting it in ``bootstrap.cfg`` file. For example::
 
     [bootstrapper]
-    copy_virtualenv = True
+    env = venv
+    hook = cp -r {PROJECT}/settings_local.py{{.def,}}
 
     [pip]
     quiet = True
 
     [virtualenv]
-    system_site_packages = True
     quiet = True
 
 By default, next configuration would be used::
 
+    [bootstrapper]
+    env = env
+    requirements = requirements.txt
+    quiet = False
+
     [pip]
     download_cache = ~/.bootstrapper/pip-cache/
 
-    [virtualenv]
-    distribute = True
-
-So, if you not rewrite this options they would be auto-added to your
-configuration. Also, all bootstrap configuration would be overwrited by
-values from command line.
+Your configuration or arguments from command line overwrite default options,
+when arguments from command line overwrite your configuration as well.
 
 Usage
 =====
@@ -73,120 +65,66 @@ Usage
 ::
 
     $ bootstrapper --help
-    usage: bootstrapper [-h] [-v] [-c CONFIG] [-e ENV] [-r REQUIREMENTS]
-                    [-p PRE_REQUIREMENTS [PRE_REQUIREMENTS ...]] [-C HOOK]
-                    [-H] [--copy-virtualenv] [--recreate-virtualenv]
-                    [--only-major] [-q]
-                    [dest]
+    usage: bootstrapper [-h] [--version] [-c CONFIG]
+                        [-p PRE_REQUIREMENTS [PRE_REQUIREMENTS ...]] [-e ENV]
+                        [-r REQUIREMENTS] [-C HOOK] [--recreate] [-q]
 
-    Bootstrap Python projects with virtualenv and pip.
-
-    positional arguments:
-      dest                  Bootstrap project using only this minor requirements.
-                            By default major requirements file and all minor files
-                            would be used for bootstrapping.
+    Bootstrap Python projects and libraries with virtualenv and pip.
 
     optional arguments:
       -h, --help            show this help message and exit
-      -v, --version         show program's version number and exit
+      --version             show program's version number and exit
       -c CONFIG, --config CONFIG
                             Path to config file. By default: bootstrap.cfg
-      -e ENV, --env ENV     Name of major virtual environment. By default: env
-      -r REQUIREMENTS, --requirements REQUIREMENTS
-                            Path to major requirements file. By default:
-                            requirements.txt
       -p PRE_REQUIREMENTS [PRE_REQUIREMENTS ...], --pre-requirements PRE_REQUIREMENTS [PRE_REQUIREMENTS ...]
-                            List pre-requirements to check separated by space.
+                            List of pre-requirements to check, separated by space.
+      -e ENV, --env ENV     Virtual environment name. By default: env
+      -r REQUIREMENTS, --requirements REQUIREMENTS
+                            Path to requirements file. By default:
+                            requirements.txt
       -C HOOK, --hook HOOK  Execute this hook after bootstrap process.
-      -H, --hook-all        Execute HOOK in each virtualenv, not only in major
-                            one.
-      --copy-virtualenv     Create virtualenv for minor requirements by copying
-                            major virtualenv. NOTE: If minor venv already exists
-                            copy process would be aborted to avoid "dest dir
-                            exists" error.
-      --recreate-virtualenv
-                            Recreate virtualenv each time, does not care about
-                            exists of env at disk.
-      --only-major          Create only major virtual environment, ignore all
-                            other requirements files.
+      --recreate            Recreate virtualenv on every run.
       -q, --quiet           Minimize output, show only error messages.
 
-Examples
-========
+How it works?
+=============
 
-Project case
-------------
+There are two types of Python installables: libraries and projects, where
+library is Python code which only has ``setup.py`` and project is Python code
+that has at least ``requirements.txt``, but could have ``setup.py`` as well.
 
-In common only one requirements file exists in the project, and for most
-cases something like ``settings_local.py.def`` should be copied to proper
-location after creating virtual environment and installing requirements. So,
-project tree could look this::
+Bootstrapper created as tool for installs Python projects, but time after time
+I needed to use it with libraries too, so from version 0.2 script check if
+passed requirements file exists on disk and if does just run,
 
-    .
-    ├── README.rst
-    ├── requirements.txt
-    └── project
-        ├── __init__.py
-        ├── app.py
-        ├── static
-        ├── templates
-        ├── settings.py
-        ├── settings_local.py.def
-        ├── tests.py
-        └── views.py
+    $ pip install -r requirements.txt ...
 
-In that case you can easilly bootstrap project with::
+inside of created virtual environment. But if requirements file does not exist,
+script sends other arguments to ``pip``,
 
-    $ bootstrapper -C 'cp -n project/settings_local.py{{.def,}}'
+    $ pip install -e . ...
 
-This will create ``env/`` virtual environment, install there all requirements
-from ``requirements.txt`` and finally copy default file to
-``settings_local.py`` if it not exists.
+and this is all magic.
 
-Application case
-----------------
+So in pseudo-code installing Python library or project with bootstrapper is
+simple process of 4 steps:
 
-For applications otherwise it's good idea to have several requirements files,
-to support testing on different requirement versions. For example, next
-application has default requirements and requirements for ``Flask==0.8``,
-
-::
-
-    .
-    ├── README.rst
-    └── application
-        └── ...
-    ├── setup.py
-    └── testapp
-        ├── app.py
-        ├── requirements.txt
-        ├── requirements-0.8.txt
-        ├── tests.py
-        └── views.py
-
-And in that case bootstrapping test app would be looking like::
-
-    $ cd testapp/ && bootstrapper
-
-This will create ``env/`` and ``env-0.8/`` environments and install there
-requirements from ``requirements.txt`` and ``requirements-0.8.txt`` apparently.
-
-In case if you want to create/update enviroment only for ``0.8`` minor
-requirement, you need to::
-
-    $ cd testapp/ && bootstrapper 0.8
-
-More examples
--------------
-
-Bootstrapper used in next my open source projects:
-
-* `Learn Python <https://github.com/playpauseandstop/learnpython.in.ua>`_
-* `Flask-Dropbox <https://github.com/playpauseandstop/Flask-Dropbox>`_
-* `Flask-And-Redis <https://github.com/playpauseandstop/Flask-And-Redis>`_
+    check_pre_requirements(list)
+    create_virtual_environment(env)
+    install_library_or_project(env)
+    run_hook(hook)
 
 Changelog
 =========
+
+0.2
+---
+
++ Full support of MS Windows platform
++ Ability to use bootstrapper for libraries with only ``setup.py`` as well as
+  for projects with ``requirements.txt`` or other requirements file
+- Remove support of major/minor requirements in favor of `tox
+  <http://tox.readthedocs.org>`_
 
 0.1.6
 -----

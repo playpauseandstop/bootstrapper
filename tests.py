@@ -2,7 +2,7 @@
 
 import locale
 import os
-import subprocess
+import shutil
 import sys
 import tempfile
 
@@ -19,10 +19,8 @@ DIRNAME = os.path.abspath(os.path.dirname(__file__))
 
 class TestBootstrapper(unittest.TestCase):
 
-    default_config = 'bootsrap.cfg'
-    default_requirements = 'requirements.txt'
-    default_venv = 'env'
-    prefix = ''
+    requirements = 'test-requirements.txt'
+    venv = 'test-env'
 
     def tearDown(self):
         if hasattr(self, 'old_stdout'):
@@ -31,18 +29,14 @@ class TestBootstrapper(unittest.TestCase):
         if hasattr(self, 'old_stderr'):
             sys.stderr = self.old_stderr
 
-        files = set([self.default_config, self.default_requirements,
-                     self.default_venv, self.config, self.requirements,
-                     self.venv])
-        self.run_cmd('rm -rf {0}'.format(' '.join(files)))
+        self.delete(self.requirements, self.venv)
 
-    @property
-    def config(self):
-        return getattr(self, '_config', self.default_config)
-
-    @config.setter
-    def config(self, value):
-        setattr(self, '_config', value)
+    def delete(self, *files):
+        for item in files:
+            if os.path.isfile(item):
+                os.unlink(item)
+            elif os.path.isdir(item):
+                shutil.rmtree(item)
 
     def init_requirements(self, *lines):
         with open(self.requirements, 'w+') as handler:
@@ -56,62 +50,44 @@ class TestBootstrapper(unittest.TestCase):
         else:
             return output
 
-    @property
-    def requirements(self):
-        if self.prefix:
-            return 'requirements-{0}.txt'.format(self.prefix)
-        return self.default_requirements
-
-    def run_cmd(self, cmd=None):
+    def run_cmd(self, cmd):
         encoding = locale.getdefaultlocale()[1]
         tout, terr = tempfile.TemporaryFile(), tempfile.TemporaryFile()
 
-        cmd = cmd or 'bootstrapper-{0}.{1}'.format(*sys.version_info[:2])
-        kwargs = {'shell': True, 'stdout': tout, 'stderr': terr}
-        subprocess.call('cd {0} && {1}'.format(DIRNAME, cmd), **kwargs)
+        self.old_stdout, self.old_stderr = sys.stdout, sys.stderr
+        sys.stdout, sys.stderr = tout, terr
+
+        if cmd == 'bootstrap':
+            bootstrapper.main('-e', self.venv, '-r', self.requirements)
+        elif cmd.startswith('pip '):
+            bootstrapper.pip_cmd(self.venv, cmd[4:], echo=True)
+        else:
+            assert False, 'Command {0!r} is not supported!'.format(cmd)
 
         tout.seek(0)
         out = tout.read().decode(encoding)
-        tout.close()
 
         terr.seek(0)
         err = terr.read().decode(encoding)
-        terr.close()
 
-        return out, err
+        return (out, err)
 
-    @property
-    def venv(self):
-        if self.prefix:
-            return '{0}-{1}'.format(self.default_venv, self.prefix)
-        return self.default_venv
+    def test_application_bootstrap(self):
+        self.assertFalse(os.path.isdir(self.venv))
+        out, err = self.run_cmd('bootstrap')
+        self.assertTrue(os.path.isdir(self.venv))
 
-    def test_normal_case(self):
+        out, _ = self.run_cmd('pip freeze')
+        self.assertIn('#egg=bootstrapper-master', out)
+
+    def test_project_bootstrap(self):
+        self.assertFalse(os.path.isdir(self.venv))
         self.init_requirements('ordereddict==1.1')
-        out, err = self.run_cmd()
+        out, err = self.run_cmd('bootstrap')
         self.assertTrue(os.path.isdir(self.venv), self.message(out, err))
 
-        out, err = self.run_cmd('{0}/bin/pip freeze'.format(self.venv))
+        out, _ = self.run_cmd('pip freeze')
         self.assertIn('ordereddict==1.1', out)
-
-    def test_special_case(self):
-        self.assertEqual(self.requirements, self.default_requirements)
-        self.assertEqual(self.venv, self.default_venv)
-
-        self.init_requirements('ordereddict==1.1', 'MiniMock==1.2.7')
-        out, err = self.run_cmd()
-        self.assertTrue(os.path.isdir(self.venv), self.message(out, err))
-
-        self.prefix = 'trunk'
-        self.assertNotEqual(self.requirements, self.default_requirements)
-        self.assertNotEqual(self.venv, self.default_venv)
-
-        self.init_requirements('ordereddict==1.1', 'MiniMock==1.2.5')
-        out, err = self.run_cmd()
-        self.assertTrue(os.path.isdir(self.venv), self.message(out, err))
-
-        out, err = self.run_cmd('{0}/bin/pip freeze'.format(self.venv))
-        self.assertIn('MiniMock==1.2.5', out)
 
 
 if __name__ == '__main__':

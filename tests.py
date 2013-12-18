@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-import locale
 import os
 import shutil
 import sys
@@ -51,8 +50,9 @@ class TestBootstrapper(unittest.TestCase):
             return output
 
     def run_cmd(self, cmd):
-        encoding = locale.getdefaultlocale()[1]
-        tout, terr = tempfile.TemporaryFile(), tempfile.TemporaryFile()
+        kwargs = {'encoding': 'utf-8'} if bootstrapper.IS_PY3 else {}
+        tout = tempfile.TemporaryFile(**kwargs)
+        terr = tempfile.TemporaryFile(**kwargs)
 
         self.old_stdout, self.old_stderr = sys.stdout, sys.stderr
         sys.stdout, sys.stderr = tout, terr
@@ -65,12 +65,9 @@ class TestBootstrapper(unittest.TestCase):
             assert False, 'Command {0!r} is not supported!'.format(cmd)
 
         tout.seek(0)
-        out = tout.read().decode(encoding)
-
         terr.seek(0)
-        err = terr.read().decode(encoding)
 
-        return (out, err)
+        return (tout.read(), terr.read())
 
     def test_application_bootstrap(self):
         self.assertFalse(os.path.isdir(self.venv))

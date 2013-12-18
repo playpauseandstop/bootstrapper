@@ -51,8 +51,8 @@ class TestBootstrapper(unittest.TestCase):
 
     def run_cmd(self, cmd):
         kwargs = {'encoding': 'utf-8'} if bootstrapper.IS_PY3 else {}
-        tout = tempfile.TemporaryFile(**kwargs)
-        terr = tempfile.TemporaryFile(**kwargs)
+        tout = tempfile.TemporaryFile('w+', **kwargs)
+        terr = tempfile.TemporaryFile('w+', **kwargs)
 
         self.old_stdout, self.old_stderr = sys.stdout, sys.stderr
         sys.stdout, sys.stderr = tout, terr

@@ -41,6 +41,7 @@ IS_PY3 = sys.version_info[0] == 3
 IS_WINDOWS = platform.system() == 'Windows'
 
 iteritems = lambda seq: seq.items() if IS_PY3 else seq.iteritems()
+iterkeys = lambda seq: seq.keys() if IS_PY3 else seq.iterkeys()
 string_types = (bytes, str) if IS_PY3 else basestring
 
 
@@ -263,7 +264,7 @@ def read_config(filename, args):
         },
     }
     default = copy.deepcopy(CONFIG)
-    sections = set(default.iterkeys())
+    sections = set(iterkeys(default))
 
     # Expand user and environ vars in config filename
     filename = os.path.expandvars(os.path.expanduser(filename))

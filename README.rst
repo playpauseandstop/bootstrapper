@@ -121,6 +121,11 @@ simple process of 4 steps::
 Changelog
 =========
 
+0.2.1
+-----
+
++ Fix installing requirements in venv on MS Windows platform
+
 0.2
 ---
 

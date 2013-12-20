@@ -21,7 +21,7 @@ from distutils.util import strtobool
 __author__ = 'Igor Davydenko'
 __license__ = 'BSD License'
 __script__ = 'bootstrapper'
-__version__ = '0.2'
+__version__ = '0.2.1'
 
 
 CONFIG = {

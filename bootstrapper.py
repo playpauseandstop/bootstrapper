@@ -222,8 +222,15 @@ def pip_cmd(venv, cmd, **kwargs):
     """
     Run pip command in given virtual environment.
     """
-    pip_path = os.path.join(venv, 'Scripts' if IS_WINDOWS else 'bin', 'pip')
-    return run_cmd(' '.join((pip_path, cmd)), **kwargs)
+    prefix = ''
+
+    if IS_WINDOWS:
+        prefix = 'python '
+        pip_path = os.path.join(venv, 'Scripts', 'pip-script.py')
+    else:
+        pip_path = os.path.join(venv, 'bin', 'pip')
+
+    return run_cmd('{0}{1} {2}'.format(prefix, pip_path, cmd), **kwargs)
 
 
 def prepare_args(config, bootstrap):

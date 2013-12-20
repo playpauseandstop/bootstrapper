@@ -88,5 +88,11 @@ class TestBootstrapper(unittest.TestCase):
         self.assertIn('ordereddict==1.1', out)
 
 
+class TestBootstrapperNoDashes(TestBootstrapper):
+
+    requirements = 'venvrequirements.txt'
+    venv = 'venv'
+
+
 if __name__ == '__main__':
     unittest.main()

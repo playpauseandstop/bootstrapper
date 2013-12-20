@@ -6,4 +6,10 @@
 build/
 dist/
 
+test-env/
+venv/
+
 MANIFEST
+
+test-requirements.txt
+venvrequirements.txt

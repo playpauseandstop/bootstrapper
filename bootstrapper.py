@@ -8,6 +8,7 @@ import os
 import platform
 import subprocess
 import sys
+import traceback
 
 try:
     from configparser import Error as ConfigParserError, SafeConfigParser

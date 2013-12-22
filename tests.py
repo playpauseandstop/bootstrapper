@@ -78,6 +78,16 @@ class TestBootstrapper(unittest.TestCase):
         self.assertIn('playpauseandstop/bootstrapper.git@', out)
         self.assertIn('#egg=bootstrapper-', out)
 
+    def test_install_error(self):
+        self.assertFalse(os.path.isdir(self.venv))
+        self.init_requirements('ordereddict==1.1')
+        os.mkdir(self.venv)
+        out, err = self.run_cmd('bootstrap')
+
+        self.assertIn('ERROR: Unexpected error catched. Exit...', err)
+        self.assertIn('Full log stored to ~/.bootstrapper/bootstrapper.log',
+                      err)
+
     def test_project_bootstrap(self):
         self.assertFalse(os.path.isdir(self.venv))
         self.init_requirements('ordereddict==1.1')

@@ -186,9 +186,10 @@ def main(*args):
 
         message = ('User aborted workflow'
                    if isinstance(err, KeyboardInterrupt)
-                   else 'Unexcepted error catched')
-        print('ERROR: {0}. Exit...'.format(message))
-        print('Full log stored to ~/.{0}/{0}.log'.format(__script__))
+                   else 'Unexpected error catched')
+        print('ERROR: {0}. Exit...'.format(message), file=sys.stderr)
+        print('Full log stored to ~/.{0}/{0}.log'.format(__script__),
+              file=sys.stderr)
 
         # True means error happened, exit code: 1
         return True

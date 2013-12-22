@@ -177,7 +177,7 @@ def main(*args):
         filename = os.path.expanduser(
             os.path.join('~',
                          '.{0}'.format(__script__),
-                         '{0}.log'.format(__script__)
+                         '{0}.log'.format(__script__))
         )
 
         with open(filename, 'a+') as handler:

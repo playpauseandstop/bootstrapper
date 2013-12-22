@@ -31,7 +31,9 @@ CONFIG = {
         'quiet': False,
     },
     'pip': {
-        'download_cache': '~/.{0}/pip-cache/'.format(__script__),
+        'download_cache': os.path.expanduser(
+            os.path.join('~', '.{0}'.format(__script__), 'pip-cache')
+        ),
     },
     'virtualenv': {},
 }
@@ -172,8 +174,11 @@ def main(*args):
         if not bootstrap['quiet']:
             print('All OK!')
     except BaseException as err:
-        filename = os.path.join('~', __script__, '{0}.log'.format(__script__))
-        filename = os.path.expanduser(filename)
+        filename = os.path.expanduser(
+            os.path.join('~',
+                         '.{0}'.format(__script__),
+                         '{0}.log'.format(__script__)
+        )
 
         with open(filename, 'a+') as handler:
             traceback.print_exc(file=handler)

@@ -107,7 +107,7 @@ def error(message, code=None):
     """
     Print error message and exit with error code.
     """
-    print('{0}. Exit...'.format(message.rstrip('.')))
+    print('ERROR: {0}. Exit...'.format(message.rstrip('.')))
     sys.exit(code or 1)
 
 
@@ -140,38 +140,55 @@ def main(*args):
     Also check system requirements before bootstrap and run post bootstrap
     hook if any.
     """
-    # Create parser, read arguments from direct input or command line
-    args = parse_args(args or sys.argv[1:])
+    try:
+        # Create parser, read arguments from direct input or command line
+        args = parse_args(args or sys.argv[1:])
 
-    # Initialize bootstrapper instance Read current config from file
-    config = read_config(args.config, args)
-    bootstrap = config[__script__]
+        # Initialize bootstrapper instance Read current config from file
+        config = read_config(args.config, args)
+        bootstrap = config[__script__]
 
-    # Check pre-requirements
-    check_pre_requirements(bootstrap['pre_requirements'])
+        # Check pre-requirements
+        check_pre_requirements(bootstrap['pre_requirements'])
 
-    # Create virtual environment
-    env_args = prepare_args(config['virtualenv'], bootstrap)
-    create_env(bootstrap['env'],
-               env_args,
-               bootstrap['recreate'],
-               bootstrap['quiet'])
+        # Create virtual environment
+        env_args = prepare_args(config['virtualenv'], bootstrap)
+        create_env(bootstrap['env'],
+                   env_args,
+                   bootstrap['recreate'],
+                   bootstrap['quiet'])
 
-    # And install library or project here
-    pip_args = prepare_args(config['pip'], bootstrap)
-    install(bootstrap['env'],
-            bootstrap['requirements'],
-            pip_args,
-            bootstrap['quiet'])
+        # And install library or project here
+        pip_args = prepare_args(config['pip'], bootstrap)
+        install(bootstrap['env'],
+                bootstrap['requirements'],
+                pip_args,
+                bootstrap['quiet'])
 
-    # Run post-bootstrap hook
-    run_hook(bootstrap['hook'], bootstrap, bootstrap['quiet'])
+        # Run post-bootstrap hook
+        run_hook(bootstrap['hook'], bootstrap, bootstrap['quiet'])
 
-    # All OK!
-    if not bootstrap['quiet']:
-        print('All OK!')
+        # All OK!
+        if not bootstrap['quiet']:
+            print('All OK!')
+    except BaseException as err:
+        filename = os.path.join('~', __script__, '{0}.log'.format(__script__))
+        filename = os.path.expanduser(filename)
 
-    return True
+        with open(filename, 'a+') as handler:
+            traceback.print_exc(file=handler)
+
+        message = ('User aborted workflow'
+                   if isinstance(err, KeyboardInterrupt)
+                   else 'Unexcepted error catched')
+        print('ERROR: {0}. Exit...'.format(message))
+        print('Full log stored to ~/.{0}/{0}.log'.format(__script__))
+
+        # True means error happened, exit code: 1
+        return True
+
+    # False means everything went alright, exit code: 0
+    return False
 
 
 def parse_args(args):
@@ -394,4 +411,4 @@ def which(executable):
 
 
 if __name__ == '__main__':
-    sys.exit(int(not main()))
+    sys.exit(int(main()))

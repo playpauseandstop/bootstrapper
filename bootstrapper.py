@@ -22,7 +22,16 @@ from distutils.util import strtobool
 __author__ = 'Igor Davydenko'
 __license__ = 'BSD License'
 __script__ = 'bootstrapper'
-__version__ = '0.2.1'
+__version__ = '0.2.2'
+
+
+IS_PY3 = sys.version_info[0] == 3
+IS_WINDOWS = platform.system() == 'Windows'
+
+iteritems = lambda seq: seq.items() if IS_PY3 else seq.iteritems()
+iterkeys = lambda seq: seq.keys() if IS_PY3 else seq.iterkeys()
+safe_path = lambda value: value.replace('/', os.sep) if IS_WINDOWS else value
+string_types = (bytes, str) if IS_PY3 else basestring
 
 
 CONFIG = {
@@ -32,19 +41,13 @@ CONFIG = {
         'quiet': False,
     },
     'pip': {
-        'download_cache': os.path.expanduser(
+        'download_cache': safe_path(os.path.expanduser(
             os.path.join('~', '.{0}'.format(__script__), 'pip-cache')
-        ),
+        )),
     },
     'virtualenv': {},
 }
 DEFAULT_CONFIG = 'bootstrap.cfg'
-IS_PY3 = sys.version_info[0] == 3
-IS_WINDOWS = platform.system() == 'Windows'
-
-iteritems = lambda seq: seq.items() if IS_PY3 else seq.iteritems()
-iterkeys = lambda seq: seq.keys() if IS_PY3 else seq.iterkeys()
-string_types = (bytes, str) if IS_PY3 else basestring
 
 
 def check_pre_requirements(pre_requirements):
@@ -143,10 +146,10 @@ def main(*args):
     Also check system requirements before bootstrap and run post bootstrap
     hook if any.
     """
-    try:
-        # Create parser, read arguments from direct input or command line
-        args = parse_args(args or sys.argv[1:])
+    # Create parser, read arguments from direct input or command line
+    args = parse_args(args or sys.argv[1:])
 
+    try:
         # Initialize bootstrapper instance Read current config from file
         config = read_config(args.config, args)
         bootstrap = config[__script__]
@@ -175,11 +178,11 @@ def main(*args):
         if not bootstrap['quiet']:
             print('All OK!')
     except BaseException as err:
-        filename = os.path.expanduser(
+        filename = safe_path(os.path.expanduser(
             os.path.join('~',
                          '.{0}'.format(__script__),
                          '{0}.log'.format(__script__))
-        )
+        ))
 
         with open(filename, 'a+') as handler:
             traceback.print_exc(file=handler)
@@ -246,15 +249,12 @@ def pip_cmd(venv, cmd, **kwargs):
     """
     Run pip command in given virtual environment.
     """
-    prefix = ''
-
-    if IS_WINDOWS:
-        prefix = 'python '
-        pip_path = os.path.join(venv, 'Scripts', 'pip-script.py')
-    else:
-        pip_path = os.path.join(venv, 'bin', 'pip')
-
-    return run_cmd('{0}{1} {2}'.format(prefix, pip_path, cmd), **kwargs)
+    pip_path = os.path.join(safe_path(venv),
+                            'Scripts' if IS_WINDOWS else 'bin',
+                            'pip')
+    return (pip_path
+            if kwargs.pop('return_path', False)
+            else run_cmd('{0} {1}'.format(pip_path, cmd), **kwargs))
 
 
 def prepare_args(config, bootstrap):
@@ -265,6 +265,7 @@ def prepare_args(config, bootstrap):
     environ = dict(copy.deepcopy(os.environ))
 
     data = {'env': bootstrap['env'],
+            'pip': pip_cmd(bootstrap['env'], '', return_path=True),
             'requirements': bootstrap['requirements']}
     environ.update(data)
 
@@ -290,7 +291,8 @@ def read_config(filename, args):
     config = defaultdict(dict)
     converters = {
         __script__: {
-            'pre_requirements': operator.methodcaller('split', ' ')
+            'env': safe_path,
+            'pre_requirements': operator.methodcaller('split', ' '),
         },
     }
     default = copy.deepcopy(CONFIG)

@@ -88,6 +88,15 @@ class TestBootstrapper(unittest.TestCase):
         self.assertIn('Full log stored to ~/.bootstrapper/bootstrapper.log',
                       err)
 
+    def test_pip_cmd(self):
+        pip_path = bootstrapper.pip_cmd(self.venv, '', return_path=True)
+        self.assertEqual(
+            pip_path,
+            os.path.join(self.venv.rstrip('/'),
+                         'Scripts' if bootstrapper.IS_WINDOWS else 'bin',
+                         'pip')
+        )
+
     def test_project_bootstrap(self):
         self.assertFalse(os.path.isdir(self.venv))
         self.init_requirements('ordereddict==1.1')
@@ -101,7 +110,7 @@ class TestBootstrapper(unittest.TestCase):
 class TestBootstrapperNoDashes(TestBootstrapper):
 
     requirements = 'venvrequirements.txt'
-    venv = 'venv'
+    venv = 'venv/'
 
 
 if __name__ == '__main__':

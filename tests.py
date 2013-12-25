@@ -28,7 +28,7 @@ class TestBootstrapper(unittest.TestCase):
         if hasattr(self, 'old_stderr'):
             sys.stderr = self.old_stderr
 
-        self.delete(self.requirements, self.venv)
+        self.delete(self.requirements, bootstrapper.safe_path(self.venv))
 
     def delete(self, *files):
         for item in files:

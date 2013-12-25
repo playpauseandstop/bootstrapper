@@ -121,6 +121,14 @@ simple process of 4 steps::
 Changelog
 =========
 
+0.2.2
+-----
+
++ More fixes to MS Windows platform
++ Ability to use ``{pip}`` in bootstrap.cfg as path to pip different in MS
+  Windows and Unix systems
++ Store full traceback on interrupting workflow or unexcepted error
+
 0.2.1
 -----
 

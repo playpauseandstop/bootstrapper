@@ -1,4 +1,11 @@
-#!/usr/bin/env python
+"""
+============
+bootstrapper
+============
+
+Bootstrap Python projects or libraries with ease.
+
+"""
 
 from __future__ import print_function
 
@@ -22,7 +29,7 @@ from distutils.util import strtobool
 __author__ = 'Igor Davydenko'
 __license__ = 'BSD License'
 __script__ = 'bootstrapper'
-__version__ = '0.2.2'
+__version__ = '0.3-dev'
 
 
 IS_PY3 = sys.version_info[0] == 3
@@ -125,7 +132,7 @@ def install(env, requirements, args, quiet=False):
         args += ' -r {0}'.format(requirements)
         label = 'project'
     else:
-        args += ' -e .'
+        args += ' -U -e .'
         label = 'library'
 
     if not quiet:

@@ -41,6 +41,7 @@ safe_path = lambda value: value.replace('/', os.sep) if IS_WINDOWS else value
 string_types = (bytes, str) if IS_PY3 else basestring
 
 
+BOOTSTRAPPER_TEST_KEY = 'BOOTSTRAPPER_TEST'
 CONFIG = {
     __script__: {
         'env': 'env',
@@ -82,14 +83,17 @@ def config_to_args(config):
         if value is False:
             continue
 
-        key = key.replace('_', '-')
+        key = '--{0}'.format(key.replace('_', '-'))
 
-        if value is not True:
-            result.append('--{0}={1}'.format(key, str(value)))
+        if isinstance(value, (list, set, tuple)):
+            for item in value:
+                result.extend((key, smart_str(item)))
+        elif value is not True:
+            result.extend((key, smart_str(value)))
         else:
-            result.append('--{0}'.format(key))
+            result.append(key)
 
-    return result
+    return tuple(result)
 
 
 def create_env(env, args, recreate=False, quiet=False):
@@ -102,7 +106,7 @@ def create_env(env, args, recreate=False, quiet=False):
         print('== Step 1. Create virtual environment ==')
 
     if recreate or not os.path.isdir(env):
-        cmd = 'virtualenv {0} {1}'.format(args, env)
+        cmd = ('virtualenv', ) + args + (env, )
 
     if not cmd and not quiet:
         print('Virtual environment {0!r} already created, done...'.format(env))
@@ -129,16 +133,16 @@ def install(env, requirements, args, quiet=False):
     Install library or project into virtual environment.
     """
     if os.path.isfile(requirements):
-        args += ' -r {0}'.format(requirements)
+        args += ('-r', requirements)
         label = 'project'
     else:
-        args += ' -U -e .'
+        args += ('-U', '-e', '.')
         label = 'library'
 
     if not quiet:
         print('== Step 2. Install {0} =='.format(label))
 
-    pip_cmd(env, 'install {0}'.format(args), echo=not quiet)
+    pip_cmd(env, ('install', ) + args, echo=not quiet)
 
     if not quiet:
         print()
@@ -185,6 +189,10 @@ def main(*args):
         if not bootstrap['quiet']:
             print('All OK!')
     except BaseException as err:
+        # Do not catch exceptions on testing
+        if BOOTSTRAPPER_TEST_KEY in os.environ:
+            raise
+
         filename = safe_path(os.path.expanduser(
             os.path.join('~',
                          '.{0}'.format(__script__),
@@ -241,11 +249,11 @@ def parse_args(args):
         '-C', '--hook', help='Execute this hook after bootstrap process.'
     )
     parser.add_argument(
-        '--recreate', action='store_true',
+        '--recreate', action='store_true', default=None,
         help='Recreate virtualenv on every run.'
     )
     parser.add_argument(
-        '-q', '--quiet', action='store_true',
+        '-q', '--quiet', action='store_true', default=None,
         help='Minimize output, show only error messages.'
     )
 
@@ -256,12 +264,13 @@ def pip_cmd(venv, cmd, **kwargs):
     """
     Run pip command in given virtual environment.
     """
+    cmd = tuple(cmd)
     pip_path = os.path.join(safe_path(venv),
                             'Scripts' if IS_WINDOWS else 'bin',
                             'pip')
     return (pip_path
             if kwargs.pop('return_path', False)
-            else run_cmd('{0} {1}'.format(pip_path, cmd), **kwargs))
+            else run_cmd((pip_path, ) + cmd, **kwargs))
 
 
 def prepare_args(config, bootstrap):
@@ -284,7 +293,7 @@ def prepare_args(config, bootstrap):
             continue
         config[key] = value.format(**environ)
 
-    return ' '.join(config_to_args(config))
+    return config_to_args(config)
 
 
 def read_config(filename, args):
@@ -296,11 +305,17 @@ def read_config(filename, args):
     """
     # Initial vars
     config = defaultdict(dict)
+    splitter = operator.methodcaller('split', ' ')
+
     converters = {
         __script__: {
             'env': safe_path,
-            'pre_requirements': operator.methodcaller('split', ' '),
+            'pre_requirements': splitter,
         },
+        'pip': {
+            'allow_external': splitter,
+            'allow_unverified': splitter,
+        }
     }
     default = copy.deepcopy(CONFIG)
     sections = set(iterkeys(default))
@@ -356,7 +371,10 @@ def read_config(filename, args):
         value = getattr(args, key)
         config[__script__].setdefault(key, value)
 
-        if value is not None or (key == 'pre_requirements' and value):
+        if key == 'pre_requirements' and not value:
+            continue
+
+        if value is not None:
             config[__script__][key] = value
 
     return config
@@ -373,12 +391,13 @@ def run_cmd(cmd, call=True, echo=False, fail_silently=False):
         alt_retcode = False
         check_output = subprocess.check_output
 
-    kwargs = {'shell': True}
+    cmd_str = ' '.join(cmd)
+    kwargs = {}
     method = subprocess.call if call else check_output
     stdout = sys.stdout if echo else subprocess.PIPE
 
     if echo:
-        print('$ {0}'.format(cmd))
+        print('$ {0}'.format(cmd_str))
 
     if call:
         kwargs.update({'stdout': stdout})
@@ -392,7 +411,7 @@ def run_cmd(cmd, call=True, echo=False, fail_silently=False):
 
     if call and retcode and not fail_silently:
         error('Command {0!r} returned non-zero exit status {1}'.
-              format(cmd, retcode))
+              format(cmd_str, retcode))
 
     return not retcode if alt_retcode else retcode
 
@@ -417,13 +436,22 @@ def run_hook(hook, config, quiet=False):
     return True
 
 
+def smart_str(value, encoding='utf-8', errors='strict'):
+    """
+    Convert Python object to string.
+    """
+    if not IS_PY3 and isinstance(value, unicode):
+        return value.encode(encoding, errors)
+    return str(value)
+
+
 def which(executable):
     """
     Shortcut to check whether executable available in current environment or
     not.
     """
     cmd = 'where' if IS_WINDOWS else 'which'
-    return run_cmd(' '.join((cmd, executable)), call=False, fail_silently=True)
+    return run_cmd((cmd, executable), call=False, fail_silently=True)
 
 
 if __name__ == '__main__':

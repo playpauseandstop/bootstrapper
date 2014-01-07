@@ -25,8 +25,11 @@ except ImportError:
 from collections import defaultdict
 from distutils.util import strtobool
 
-from pip.log import _color_wrap
-from pip._vendor import colorama
+try:
+    from pip.log import _color_wrap
+    from pip._vendor import colorama
+except ImportError:
+    colorama = None
 
 
 __author__ = 'Igor Davydenko'
@@ -313,7 +316,9 @@ def print_error(message, wrap=True):
     if wrap:
         message = 'ERROR: {0}. Exit...'.format(message.rstrip('.'))
 
-    colorizer = _color_wrap(colorama.Fore.RED)
+    colorizer = (_color_wrap(colorama.Fore.RED)
+                 if colorama
+                 else lambda message: message)
     return print(colorizer(message), file=sys.stderr)
 
 

@@ -25,6 +25,9 @@ except ImportError:
 from collections import defaultdict
 from distutils.util import strtobool
 
+from pip.log import _color_wrap
+from pip._vendor import colorama
+
 
 __author__ = 'Igor Davydenko'
 __license__ = 'BSD License'
@@ -124,7 +127,7 @@ def error(message, code=None):
     """
     Print error message and exit with error code.
     """
-    print('ERROR: {0}. Exit...'.format(message.rstrip('.')))
+    print_error(message)
     sys.exit(code or 1)
 
 
@@ -193,21 +196,28 @@ def main(*args):
         if BOOTSTRAPPER_TEST_KEY in os.environ:
             raise
 
-        filename = safe_path(os.path.expanduser(
-            os.path.join('~',
-                         '.{0}'.format(__script__),
-                         '{0}.log'.format(__script__))
+        # Store logs to ~/.bootstrapper directory
+        dirname = safe_path(os.path.expanduser(
+            os.path.join('~', '.{0}'.format(__script__))
         ))
+
+        # But ensure that directory exists
+        if not os.path.isdir(dirname):
+            os.mkdir(dirname)
+
+        # Now we ready to put traceback to log file
+        filename = os.path.join(dirname, '{0}.log'.format(__script__))
 
         with open(filename, 'a+') as handler:
             traceback.print_exc(file=handler)
 
+        # And show colorized message
         message = ('User aborted workflow'
                    if isinstance(err, KeyboardInterrupt)
                    else 'Unexpected error catched')
-        print('ERROR: {0}. Exit...'.format(message), file=sys.stderr)
-        print('Full log stored to ~/.{0}/{0}.log'.format(__script__),
-              file=sys.stderr)
+        print_error(message)
+        print_error('Full log stored to ~/.{0}/{0}.log'.format(__script__),
+                    False)
 
         # True means error happened, exit code: 1
         return True
@@ -294,6 +304,17 @@ def prepare_args(config, bootstrap):
         config[key] = value.format(**environ)
 
     return config_to_args(config)
+
+
+def print_error(message, wrap=True):
+    """
+    Print error message to stderr, using ANSI-colors.
+    """
+    if wrap:
+        message = 'ERROR: {0}. Exit...'.format(message.rstrip('.'))
+
+    colorizer = _color_wrap(colorama.Fore.RED)
+    return print(colorizer(message), file=sys.stderr)
 
 
 def read_config(filename, args):

@@ -99,8 +99,7 @@ class TestBootstrapper(unittest.TestCase):
         out, err = self.run_cmd('bootstrap')
 
         self.assertIn('ERROR: Unexpected error catched. Exit...', err)
-        self.assertIn('Full log stored to ~/.bootstrapper/bootstrapper.log',
-                      err)
+        self.assertIn('Full log stored to ', err)
 
     def test_pip_cmd(self):
         pip_path = bootstrapper.pip_cmd(self.venv, '', return_path=True)

@@ -219,8 +219,7 @@ def main(*args):
                    if isinstance(err, KeyboardInterrupt)
                    else 'Unexpected error catched')
         print_error(message)
-        print_error('Full log stored to ~/.{0}/{0}.log'.format(__script__),
-                    False)
+        print_error('Full log stored to {0}'.format(filename), False)
 
         # True means error happened, exit code: 1
         return True

@@ -111,7 +111,7 @@ def create_env(env, args, recreate=False, quiet=False):
     if not quiet:
         print('== Step 1. Create virtual environment ==')
 
-    if recreate or not os.path.isdir(env):
+    if recreate or not os.path.isdir(env) or not hasattr(sys, 'real_prefix'):
         cmd = ('virtualenv', ) + args + (env, )
 
     if not cmd and not quiet:

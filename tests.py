@@ -158,6 +158,9 @@ class TestOther(unittest.TestCase):
 
     def test_read_config(self):
         kwargs = {'delete': False, 'prefix': 'bootstrap', 'suffix': '.cfg'}
+        if bootstrapper.IS_PY3:
+            kwargs.update({'encoding': 'utf-8'})
+
         self.config = tempfile.NamedTemporaryFile(**kwargs)
         self.config.write(TEST_CONFIG)
         self.config.close()

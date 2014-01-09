@@ -44,7 +44,7 @@ IS_WINDOWS = platform.system() == 'Windows'
 iteritems = lambda seq: seq.items() if IS_PY3 else seq.iteritems()
 iterkeys = lambda seq: seq.keys() if IS_PY3 else seq.iterkeys()
 safe_path = lambda value: value.replace('/', os.sep) if IS_WINDOWS else value
-string_types = (bytes, str) if IS_PY3 else basestring
+string_types = (bytes, str) if IS_PY3 else (basestring, )  # noqa
 
 
 BOOTSTRAPPER_TEST_KEY = 'BOOTSTRAPPER_TEST'
@@ -432,7 +432,7 @@ def run_cmd(cmd, call=True, echo=False, fail_silently=False):
     except subprocess.CalledProcessError as err:
         if fail_silently:
             return False
-        error(str(err) if IS_PY3 else unicode(err))
+        error(str(err) if IS_PY3 else unicode(err))  # noqa
 
     if call and retcode and not fail_silently:
         error('Command {0!r} returned non-zero exit status {1}'.
@@ -465,7 +465,7 @@ def smart_str(value, encoding='utf-8', errors='strict'):
     """
     Convert Python object to string.
     """
-    if not IS_PY3 and isinstance(value, unicode):
+    if not IS_PY3 and isinstance(value, unicode):  # noqa
         return value.encode(encoding, errors)
     return str(value)
 

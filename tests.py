@@ -161,7 +161,7 @@ class TestOther(unittest.TestCase):
         if bootstrapper.IS_PY3:
             kwargs.update({'encoding': 'utf-8'})
 
-        self.config = tempfile.NamedTemporaryFile(**kwargs)
+        self.config = tempfile.NamedTemporaryFile('w+', **kwargs)
         self.config.write(TEST_CONFIG)
         self.config.close()
 

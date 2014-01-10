@@ -107,11 +107,12 @@ def create_env(env, args, recreate=False, quiet=False):
     Create virtual environment.
     """
     cmd = None
+    inside_venv = hasattr(sys, 'real_prefix')
 
     if not quiet:
         print('== Step 1. Create virtual environment ==')
 
-    if recreate or not os.path.isdir(env) or not hasattr(sys, 'real_prefix'):
+    if not inside_venv and (recreate or not os.path.isdir(env)):
         cmd = ('virtualenv', ) + args + (env, )
 
     if not cmd and not quiet:
@@ -405,7 +406,7 @@ def read_config(filename, args):
     return config
 
 
-def run_cmd(cmd, call=True, echo=False, fail_silently=False):
+def run_cmd(cmd, call=True, echo=False, fail_silently=False, shell=False):
     """
     Run command with ``subprocess`` module and return output as result.
     """
@@ -416,12 +417,12 @@ def run_cmd(cmd, call=True, echo=False, fail_silently=False):
         alt_retcode = False
         check_output = subprocess.check_output
 
-    cmd_str = ' '.join(cmd)
-    kwargs = {}
+    kwargs = {'shell': shell}
     method = subprocess.call if call else check_output
     stdout = sys.stdout if echo else subprocess.PIPE
 
     if echo:
+        cmd_str = cmd if isinstance(cmd, string_types) else ' '.join(cmd)
         print('$ {0}'.format(cmd_str))
 
     if call:
@@ -453,7 +454,8 @@ def run_hook(hook, config, quiet=False):
 
     run_cmd(prepare_args(hook, config),
             echo=not quiet,
-            fail_silently=True)
+            fail_silently=True,
+            shell=True)
 
     if not quiet:
         print()

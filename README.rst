@@ -6,7 +6,7 @@ bootstrapper
     :target: https://travis-ci.org/playpauseandstop/bootstrapper
 
 .. image:: https://pypip.in/v/bootstrapper/badge.png
-    :target: https://crate.io/packages/bootstrapper
+    :target: https://pypi.python.org/pypi/bootstrapper
 
 Bootstrap Python projects or libraries by checking system pre-requirements if
 necessary, creating virtual environment, installing all requirements there and
@@ -15,7 +15,7 @@ finally execute post-bootstrap hooks if any.
 Requirements
 ============
 
-* `Python <http://www.python.org/>`_ 2.6, 2.7, 3.2+
+* `Python <http://www.python.org/>`_ 2.6+
 
 Installation
 ============
@@ -106,7 +106,7 @@ script sends other arguments to ``pip``,
 
 ::
 
-    $ pip install -e . ...
+    $ pip install -U -e . ...
 
 and this is all magic.
 
@@ -121,21 +121,29 @@ simple process of 4 steps::
 Changelog
 =========
 
-0.2.2
------
+0.3
+---
+
++ Do not recreate virtual environment if already working in activated virtual
+  environment
++ Colorize error messages if system has pip 1.5+
++ Support multiple command line arguments for pip 1.5 from command line
+
+0.2.2 (2013-12-25)
+------------------
 
 + More fixes to MS Windows platform
 + Ability to use ``{pip}`` in bootstrap.cfg as path to pip different in MS
   Windows and Unix systems
 + Store full traceback on interrupting workflow or unexcepted error
 
-0.2.1
------
+0.2.1 (2013-12-20)
+------------------
 
 + Fix installing requirements in venv on MS Windows platform
 
-0.2
----
+0.2 (2013-12-18)
+----------------
 
 + Full support of MS Windows platform
 + Ability to use bootstrapper for libraries with only ``setup.py`` as well as
@@ -143,43 +151,43 @@ Changelog
 - Remove support of major/minor requirements in favor of `tox
   <http://tox.readthedocs.org>`_
 
-0.1.6
------
+0.1.6 (2013-12-17)
+------------------
 
 + Initial support of MS Windows platform
 
-0.1.5
------
+0.1.5 (2013-06-02)
+------------------
 
 + Real support of Python 3 versions
 + Enable Travis CI support
 + Refactor bootstrapper to Python module
 
-0.1.4
------
+0.1.4 (2013-06-02)
+------------------
 
 + Support Python 3 versions
 
-0.1.3
------
+0.1.3 (2013-05-28)
+------------------
 
 - Disable ``--use-mirrors`` key by default for installing requirements via
   ``pip`` cause of latest `PyPI CDN changes
   <https://twitter.com/pythonpackaging/status/339143339356061696>`_.
 
-0.1.2
------
+0.1.2 (2013-05-28)
+------------------
 
 + Make ability to reuse cached pip files by storing them in ``~/.bootstrapper``
   user directory by default.
 
-0.1.1
------
+0.1.1 (2013-01-02)
+------------------
 
 + Use ``--use-mirrors`` key by default when ``pip`` installs requirements to
   virtual environment.
 
-0.1
----
+0.1 (2012-09-26)
+----------------
 
 - Initial release.

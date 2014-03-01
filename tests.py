@@ -70,8 +70,8 @@ class TestBootstrapper(unittest.TestCase):
 
         if cmd == 'bootstrap':
             args = ()
-            if 'TRAVIS_PYTHON' in os.environ:
-                args = ('--recreate', )
+            if 'TRAVIS_PYTHON_VERSION' in os.environ:
+                args = ('--ignore-activated', )
             bootstrapper.main('-e', self.venv, '-r', self.requirements, *args)
         elif cmd.startswith('pip '):
             bootstrapper.pip_cmd(self.venv, cmd[4:].split(), echo=True)

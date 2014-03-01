@@ -105,23 +105,27 @@ def config_to_args(config):
     return tuple(result)
 
 
-def create_env(env, args, recreate=False, quiet=False):
+def create_env(env, args, recreate=False, ignore_activated=False, quiet=False):
     """
     Create virtual environment.
     """
     cmd = None
 
-    inside_venv = hasattr(sys, 'real_prefix') or os.environ.get('VIRTUAL_ENV')
-    venv_exists = os.path.isdir(env)
+    inside_env = hasattr(sys, 'real_prefix') or os.environ.get('VIRTUAL_ENV')
+    env_exists = os.path.isdir(env)
 
     if not quiet:
         print('== Step 1. Create virtual environment ==')
 
-    if recreate or (not inside_venv and not venv_exists):
+    if (
+        recreate or (not inside_env and not env_exists)
+    ) or (
+        ignore_activated and not env_exists
+    ):
         cmd = ('virtualenv', ) + args + (env, )
 
     if not cmd and not quiet:
-        if inside_venv:
+        if inside_env:
             message = 'Working inside of virtual environment, done...'
         else:
             message = 'Virtual environment {0!r} already created, done...'
@@ -179,7 +183,7 @@ def error_handler(func):
     return wrapper
 
 
-def install(env, requirements, args, quiet=False):
+def install(env, requirements, args, ignore_activated=False, quiet=False):
     """
     Install library or project into virtual environment.
     """
@@ -193,7 +197,7 @@ def install(env, requirements, args, quiet=False):
     if not quiet:
         print('== Step 2. Install {0} =='.format(label))
 
-    pip_cmd(env, ('install', ) + args, echo=not quiet)
+    pip_cmd(env, ('install', ) + args, ignore_activated, echo=not quiet)
 
     if not quiet:
         print()
@@ -224,6 +228,7 @@ def main(*args):
     create_env(bootstrap['env'],
                env_args,
                bootstrap['recreate'],
+               bootstrap['ignore_activated'],
                bootstrap['quiet'])
 
     # And install library or project here
@@ -231,6 +236,7 @@ def main(*args):
     install(bootstrap['env'],
             bootstrap['requirements'],
             pip_args,
+            bootstrap['ignore_activated'],
             bootstrap['quiet'])
 
     # Run post-bootstrap hook
@@ -277,6 +283,10 @@ def parse_args(args):
         '-C', '--hook', help='Execute this hook after bootstrap process.'
     )
     parser.add_argument(
+        '--ignore-activated', action='store_true', default=None,
+        help='Ignore pre-activated virtualenv, like on Travis CI.'
+    )
+    parser.add_argument(
         '--recreate', action='store_true', default=None,
         help='Recreate virtualenv on every run.'
     )
@@ -288,19 +298,20 @@ def parse_args(args):
     return parser.parse_args(args)
 
 
-def pip_cmd(venv, cmd, **kwargs):
+def pip_cmd(env, cmd, ignore_activated=False, **kwargs):
     """
     Run pip command in given or activated virtual environment.
     """
-    activated_venv = os.environ.get('VIRTUAL_ENV')
     cmd = tuple(cmd)
+    dirname = safe_path(env)
 
-    if hasattr(sys, 'real_prefix'):
-        dirname = sys.prefix
-    elif activated_venv:
-        dirname = activated_venv
-    else:
-        dirname = safe_path(venv)
+    if not ignore_activated:
+        activated_env = os.environ.get('VIRTUAL_ENV')
+
+        if hasattr(sys, 'real_prefix'):
+            dirname = sys.prefix
+        elif activated_env:
+            dirname = activated_env
 
     pip_path = os.path.join(dirname, 'Scripts' if IS_WINDOWS else 'bin', 'pip')
 
@@ -418,7 +429,8 @@ def read_config(filename, args):
 
     # Update bootstrap config from parsed args
     keys = set((
-        'env', 'hook', 'pre_requirements', 'quiet', 'recreate', 'requirements'
+        'env', 'hook', 'ignore_activated', 'pre_requirements', 'quiet',
+        'recreate', 'requirements'
     ))
 
     for key in keys:

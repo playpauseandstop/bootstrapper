@@ -69,7 +69,10 @@ class TestBootstrapper(unittest.TestCase):
         sys.stdout, sys.stderr = tout, terr
 
         if cmd == 'bootstrap':
-            bootstrapper.main('-e', self.venv, '-r', self.requirements)
+            args = ()
+            if 'TRAVIS_PYTHON' in os.environ:
+                args = ('--recreate', )
+            bootstrapper.main('-e', self.venv, '-r', self.requirements, *args)
         elif cmd.startswith('pip '):
             bootstrapper.pip_cmd(self.venv, cmd[4:].split(), echo=True)
         else:

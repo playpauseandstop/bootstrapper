@@ -23,7 +23,9 @@ except ImportError:
     from ConfigParser import Error as ConfigParserError, SafeConfigParser
 
 from collections import defaultdict
+from contextlib import contextmanager
 from distutils.util import strtobool
+from functools import wraps
 
 try:
     from pip.log import _color_wrap
@@ -62,6 +64,7 @@ CONFIG = {
     'virtualenv': {},
 }
 DEFAULT_CONFIG = 'bootstrap.cfg'
+ERROR_HANDLER_DISABLED = False
 
 
 def check_pre_requirements(pre_requirements):
@@ -107,24 +110,42 @@ def create_env(env, args, recreate=False, quiet=False):
     Create virtual environment.
     """
     cmd = None
-    inside_venv = hasattr(sys, 'real_prefix')
+
+    inside_venv = hasattr(sys, 'real_prefix') or os.environ.get('VIRTUAL_ENV')
+    venv_exists = os.path.isdir(env)
 
     if not quiet:
         print('== Step 1. Create virtual environment ==')
 
-    if not inside_venv and (recreate or not os.path.isdir(env)):
+    if recreate or (not inside_venv and not venv_exists):
         cmd = ('virtualenv', ) + args + (env, )
 
     if not cmd and not quiet:
-        print('Virtual environment {0!r} already created, done...'.format(env))
+        if inside_venv:
+            message = 'Working inside of virtual environment, done...'
+        else:
+            message = 'Virtual environment {0!r} already created, done...'
+        print(message.format(env))
 
     if cmd:
-        run_cmd(cmd, echo=not quiet)
+        with disable_error_handler():
+            run_cmd(cmd, echo=not quiet)
 
     if not quiet:
         print()
 
     return True
+
+
+@contextmanager
+def disable_error_handler():
+    """
+    Temporary disable error handling.
+    """
+    global ERROR_HANDLER_DISABLED
+    ERROR_HANDLER_DISABLED = True
+    yield
+    ERROR_HANDLER_DISABLED = False
 
 
 def error(message, code=None):
@@ -133,6 +154,29 @@ def error(message, code=None):
     """
     print_error(message)
     sys.exit(code or 1)
+
+
+def error_handler(func):
+    """
+    Decorator to  error handling.
+    """
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        """
+        Run
+        """
+        try:
+            return func(*args, **kwargs)
+        except BaseException as err:
+            # Do not catch exceptions on testing
+            if BOOTSTRAPPER_TEST_KEY in os.environ:
+                raise
+            # Fail silently if error handling disabled
+            if ERROR_HANDLER_DISABLED:
+                return True
+            # Otherwise save exception to log
+            return save_traceback(err)
+    return wrapper
 
 
 def install(env, requirements, args, quiet=False):
@@ -157,6 +201,7 @@ def install(env, requirements, args, quiet=False):
     return True
 
 
+@error_handler
 def main(*args):
     """
     Bootstrap Python projects and libraries with virtualenv and pip.
@@ -167,63 +212,33 @@ def main(*args):
     # Create parser, read arguments from direct input or command line
     args = parse_args(args or sys.argv[1:])
 
-    try:
-        # Initialize bootstrapper instance Read current config from file
-        config = read_config(args.config, args)
-        bootstrap = config[__script__]
+    # Initialize bootstrapper instance Read current config from file
+    config = read_config(args.config, args)
+    bootstrap = config[__script__]
 
-        # Check pre-requirements
-        check_pre_requirements(bootstrap['pre_requirements'])
+    # Check pre-requirements
+    check_pre_requirements(bootstrap['pre_requirements'])
 
-        # Create virtual environment
-        env_args = prepare_args(config['virtualenv'], bootstrap)
-        create_env(bootstrap['env'],
-                   env_args,
-                   bootstrap['recreate'],
-                   bootstrap['quiet'])
+    # Create virtual environment
+    env_args = prepare_args(config['virtualenv'], bootstrap)
+    create_env(bootstrap['env'],
+               env_args,
+               bootstrap['recreate'],
+               bootstrap['quiet'])
 
-        # And install library or project here
-        pip_args = prepare_args(config['pip'], bootstrap)
-        install(bootstrap['env'],
-                bootstrap['requirements'],
-                pip_args,
-                bootstrap['quiet'])
+    # And install library or project here
+    pip_args = prepare_args(config['pip'], bootstrap)
+    install(bootstrap['env'],
+            bootstrap['requirements'],
+            pip_args,
+            bootstrap['quiet'])
 
-        # Run post-bootstrap hook
-        run_hook(bootstrap['hook'], bootstrap, bootstrap['quiet'])
+    # Run post-bootstrap hook
+    run_hook(bootstrap['hook'], bootstrap, bootstrap['quiet'])
 
-        # All OK!
-        if not bootstrap['quiet']:
-            print('All OK!')
-    except BaseException as err:
-        # Do not catch exceptions on testing
-        if BOOTSTRAPPER_TEST_KEY in os.environ:
-            raise
-
-        # Store logs to ~/.bootstrapper directory
-        dirname = safe_path(os.path.expanduser(
-            os.path.join('~', '.{0}'.format(__script__))
-        ))
-
-        # But ensure that directory exists
-        if not os.path.isdir(dirname):
-            os.mkdir(dirname)
-
-        # Now we ready to put traceback to log file
-        filename = os.path.join(dirname, '{0}.log'.format(__script__))
-
-        with open(filename, 'a+') as handler:
-            traceback.print_exc(file=handler)
-
-        # And show colorized message
-        message = ('User aborted workflow'
-                   if isinstance(err, KeyboardInterrupt)
-                   else 'Unexpected error catched')
-        print_error(message)
-        print_error('Full log stored to {0}'.format(filename), False)
-
-        # True means error happened, exit code: 1
-        return True
+    # All OK!
+    if not bootstrap['quiet']:
+        print('All OK!')
 
     # False means everything went alright, exit code: 0
     return False
@@ -275,15 +290,28 @@ def parse_args(args):
 
 def pip_cmd(venv, cmd, **kwargs):
     """
-    Run pip command in given virtual environment.
+    Run pip command in given or activated virtual environment.
     """
+    activated_venv = os.environ.get('VIRTUAL_ENV')
     cmd = tuple(cmd)
-    pip_path = os.path.join(safe_path(venv),
-                            'Scripts' if IS_WINDOWS else 'bin',
-                            'pip')
-    return (pip_path
-            if kwargs.pop('return_path', False)
-            else run_cmd((pip_path, ) + cmd, **kwargs))
+
+    if hasattr(sys, 'real_prefix'):
+        dirname = sys.prefix
+    elif activated_venv:
+        dirname = activated_venv
+    else:
+        dirname = safe_path(venv)
+
+    pip_path = os.path.join(dirname, 'Scripts' if IS_WINDOWS else 'bin', 'pip')
+
+    if kwargs.pop('return_path', False):
+        return pip_path
+
+    if not os.path.isfile(pip_path):
+        raise OSError('No pip found at {0!r}'.format(pip_path))
+
+    with disable_error_handler():
+        return run_cmd((pip_path, ) + cmd, **kwargs)
 
 
 def prepare_args(config, bootstrap):
@@ -459,6 +487,35 @@ def run_hook(hook, config, quiet=False):
 
     if not quiet:
         print()
+
+    return True
+
+
+def save_traceback(err):
+    """
+    Save error traceback to bootstrapper log file.
+    """
+    # Store logs to ~/.bootstrapper directory
+    dirname = safe_path(os.path.expanduser(
+        os.path.join('~', '.{0}'.format(__script__))
+    ))
+
+    # But ensure that directory exists
+    if not os.path.isdir(dirname):
+        os.mkdir(dirname)
+
+    # Now we ready to put traceback to log file
+    filename = os.path.join(dirname, '{0}.log'.format(__script__))
+
+    with open(filename, 'a+') as handler:
+        traceback.print_exc(file=handler)
+
+    # And show colorized message
+    message = ('User aborted workflow'
+               if isinstance(err, KeyboardInterrupt)
+               else 'Unexpected error catched')
+    print_error(message)
+    print_error('Full log stored to {0}'.format(filename), False)
 
     return True
 

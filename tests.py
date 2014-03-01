@@ -64,17 +64,19 @@ class TestBootstrapper(unittest.TestCase):
 
     def run_cmd(self, cmd):
         kwargs = {'encoding': 'utf-8'} if bootstrapper.IS_PY3 else {}
+        on_travis = 'TRAVIS_PYTHON_VERSION' in os.environ
         tout = tempfile.TemporaryFile('w+', **kwargs)
         terr = tempfile.TemporaryFile('w+', **kwargs)
         sys.stdout, sys.stderr = tout, terr
 
         if cmd == 'bootstrap':
-            args = ()
-            if 'TRAVIS_PYTHON_VERSION' in os.environ:
-                args = ('--ignore-activated', )
+            args = ('--ignore-activated', ) if on_travis else ()
             bootstrapper.main('-e', self.venv, '-r', self.requirements, *args)
         elif cmd.startswith('pip '):
-            bootstrapper.pip_cmd(self.venv, cmd[4:].split(), echo=True)
+            bootstrapper.pip_cmd(self.venv,
+                                 cmd[4:].split(),
+                                 on_travis,
+                                 echo=True)
         else:
             assert False, 'Command {0!r} is not supported!'.format(cmd)
 
@@ -82,15 +84,6 @@ class TestBootstrapper(unittest.TestCase):
         terr.seek(0)
 
         return (tout.read(), terr.read())
-
-    def test_application_bootstrap(self):
-        self.assertFalse(os.path.isdir(self.venv))
-        out, err = self.run_cmd('bootstrap')
-        self.assertTrue(os.path.isdir(self.venv))
-
-        out, _ = self.run_cmd('pip freeze')
-        self.assertIn('playpauseandstop/bootstrapper.git@', out)
-        self.assertIn('#egg=bootstrapper-', out)
 
     def test_install_error(self):
         os.environ.pop(bootstrapper.BOOTSTRAPPER_TEST_KEY)
@@ -104,8 +97,17 @@ class TestBootstrapper(unittest.TestCase):
         self.assertIn('ERROR: Unexpected error catched. Exit...', err)
         self.assertIn('Full log stored to ', err)
 
+    def test_library_bootstrap(self):
+        self.assertFalse(os.path.isdir(self.venv))
+        out, err = self.run_cmd('bootstrap')
+        self.assertTrue(os.path.isdir(self.venv))
+
+        out, _ = self.run_cmd('pip freeze')
+        self.assertIn('playpauseandstop/bootstrapper.git@', out)
+        self.assertIn('#egg=bootstrapper-', out)
+
     def test_pip_cmd(self):
-        pip_path = bootstrapper.pip_cmd(self.venv, '', return_path=True)
+        pip_path = bootstrapper.pip_cmd(self.venv, '', True, return_path=True)
         self.assertEqual(
             pip_path,
             os.path.join(self.venv.rstrip('/'),

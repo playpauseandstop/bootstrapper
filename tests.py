@@ -114,19 +114,22 @@ class TestBootstrapper(unittest.TestCase):
 
     def test_library_bootstrap(self):
         # We need to allow install argparse from external
-        pip_version_info = map(int, pip.__version__.split('.'))[:2]
-        if sys.version_info[:2] < (2, 7) and pip_version_info >= (1, 5):
-            self.config = '{0}.cfg'.format(self.venv)
+        pip_version_info = tuple(map(int, pip.__version__.split('.')))[:2]
+        if sys.version_info[:2] < (2, 7) and pip_version_info > (1, 4):
+            self.config = '{0}.cfg'.format(self.venv.rstrip('/'))
             with open(self.config, 'w+') as handler:
                 handler.write('[pip]\nallow_external = argparse\n')
 
         self.assertFalse(os.path.isdir(self.venv))
         out, err = self.run_cmd('bootstrap')
-        self.assertTrue(os.path.isdir(self.venv))
+        base_debug = self.message(out, err)
+        self.assertTrue(os.path.isdir(self.venv), base_debug)
+
+        if self.config:
+            self.assertIn('--allow-external argparse', out, base_debug)
 
         pip_out, pip_err = self.run_cmd('pip freeze')
-        debug = '\n'.join((self.message(out, err),
-                           self.message(pip_out, pip_err)))
+        debug = '\n'.join((base_debug, self.message(pip_out, pip_err)))
         self.assertIn('playpauseandstop/bootstrapper.git@', pip_out, debug)
         self.assertIn('#egg=bootstrapper-', pip_out, debug)
 
@@ -143,11 +146,11 @@ class TestBootstrapper(unittest.TestCase):
         self.assertFalse(os.path.isdir(self.venv))
         self.init_requirements('ordereddict==1.1')
         out, err = self.run_cmd('bootstrap')
-        self.assertTrue(os.path.isdir(self.venv), self.message(out, err))
+        base_debug = self.message(out, err)
+        self.assertTrue(os.path.isdir(self.venv), base_debug)
 
         pip_out, pip_err = self.run_cmd('pip freeze')
-        debug = '\n'.join((self.message(out, err),
-                           self.message(pip_out, pip_err)))
+        debug = '\n'.join((base_debug, self.message(pip_out, pip_err)))
         self.assertIn('ordereddict==1.1', pip_out, debug)
 
 

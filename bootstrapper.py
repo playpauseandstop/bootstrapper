@@ -218,7 +218,8 @@ def main(*args):
     hook if any.
     """
     # Create parser, read arguments from direct input or command line
-    args = parse_args(args or sys.argv[1:])
+    with disable_error_handler():
+        args = parse_args(args or sys.argv[1:])
 
     # Read current config from file and command line arguments
     config = read_config(args.config, args)

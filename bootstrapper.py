@@ -178,6 +178,15 @@ def error_handler(func):
     return wrapper
 
 
+def get_temp_streams():
+    """
+    Return two temporary file handlers for STDOUT and STDERR.
+    """
+    kwargs = {'encoding': 'utf-8'} if IS_PY3 else {}
+    return (tempfile.TemporaryFile('w+', **kwargs),
+            tempfile.TemporaryFile('w+', **kwargs))
+
+
 def install(env, requirements, args, ignore_activated=False, quiet=False):
     """
     Install library or project into virtual environment.
@@ -457,10 +466,8 @@ def run_cmd(cmd, echo=False, fail_silently=False, **kwargs):
         kwargs['stdout'], kwargs['stderr'] = sys.stdout, sys.stderr
         print('$ {0}'.format(cmd_str))
     else:
-        tkwargs = {'encoding': 'utf-8'} if IS_PY3 else {}
-        tout = tempfile.TemporaryFile('w+', **tkwargs)
-        terr = tempfile.TemporaryFile('w+', **tkwargs)
-        kwargs['stdout'], kwargs['stderr'] = tout, terr
+        out, err = get_temp_streams()
+        kwargs['stdout'], kwargs['stderr'] = out, err
 
     try:
         retcode = subprocess.call(cmd, **kwargs)

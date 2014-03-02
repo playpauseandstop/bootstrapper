@@ -12,6 +12,8 @@ try:
 except ImportError:
     import unittest
 
+from contextlib import contextmanager
+
 import bootstrapper
 
 
@@ -33,14 +35,10 @@ class TestBootstrapper(unittest.TestCase):
 
     def setUp(self):
         os.environ[bootstrapper.BOOTSTRAPPER_TEST_KEY] = '1'
-        self.original_stdout = sys.stdout
-        self.original_stderr = sys.stderr
 
     def tearDown(self):
         if bootstrapper.BOOTSTRAPPER_TEST_KEY in os.environ:
             os.environ.pop(bootstrapper.BOOTSTRAPPER_TEST_KEY)
-        sys.stdout = self.original_stdout
-        sys.stderr = self.original_stderr
         self.delete(self.requirements, bootstrapper.safe_path(self.venv))
 
     def delete(self, *files):
@@ -62,28 +60,37 @@ class TestBootstrapper(unittest.TestCase):
         else:
             return output
 
+    @contextmanager
+    def redirect_streams(self, out, err):
+        original_out, original_err = sys.stdout, sys.stderr
+        sys.stdout, sys.stderr = out, err
+        yield
+        sys.stdout, sys.stderr = original_out, original_err
+
+        out.seek(0)
+        err.seek(0)
+
     def run_cmd(self, cmd):
-        kwargs = {'encoding': 'utf-8'} if bootstrapper.IS_PY3 else {}
+        kwargs = {}
         on_travis = 'TRAVIS_PYTHON_VERSION' in os.environ
-        tout = tempfile.TemporaryFile('w+', **kwargs)
-        terr = tempfile.TemporaryFile('w+', **kwargs)
-        sys.stdout, sys.stderr = tout, terr
+        out, err = bootstrapper.get_temp_streams()
 
         if cmd == 'bootstrap':
-            args = ('--ignore-activated', ) if on_travis else ()
-            bootstrapper.main('-e', self.venv, '-r', self.requirements, *args)
+            func = bootstrapper.main
+            args = ('-e', self.venv, '-r', self.requirements)
+            if on_travis:
+                args += ('--ignore-activated', )
         elif cmd.startswith('pip '):
-            bootstrapper.pip_cmd(self.venv,
-                                 cmd[4:].split(),
-                                 on_travis,
-                                 echo=True)
+            func = bootstrapper.pip_cmd
+            args = (self.venv, cmd[4:].split(), on_travis, )
+            kwargs['echo'] = True
         else:
             assert False, 'Command {0!r} is not supported!'.format(cmd)
 
-        tout.seek(0)
-        terr.seek(0)
+        with self.redirect_streams(out, err):
+            func(*args, **kwargs)
 
-        return (tout.read(), terr.read())
+        return (out.read(), err.read())
 
     def test_install_error(self):
         os.environ.pop(bootstrapper.BOOTSTRAPPER_TEST_KEY)
@@ -93,18 +100,21 @@ class TestBootstrapper(unittest.TestCase):
 
         os.mkdir(self.venv)
         out, err = self.run_cmd('bootstrap')
+        debug = self.message(out, err)
 
-        self.assertIn('ERROR: Unexpected error catched. Exit...', err)
-        self.assertIn('Full log stored to ', err)
+        self.assertIn('ERROR: Unexpected error catched. Exit...', err, debug)
+        self.assertIn('Full log stored to ', err, debug)
 
     def test_library_bootstrap(self):
         self.assertFalse(os.path.isdir(self.venv))
         out, err = self.run_cmd('bootstrap')
         self.assertTrue(os.path.isdir(self.venv))
 
-        out, _ = self.run_cmd('pip freeze')
-        self.assertIn('playpauseandstop/bootstrapper.git@', out)
-        self.assertIn('#egg=bootstrapper-', out)
+        pip_out, pip_err = self.run_cmd('pip freeze')
+        debug = '\n'.join((self.message(out, err),
+                           self.message(pip_out, pip_err)))
+        self.assertIn('playpauseandstop/bootstrapper.git@', pip_out, debug)
+        self.assertIn('#egg=bootstrapper-', pip_out, debug)
 
     def test_pip_cmd(self):
         pip_path = bootstrapper.pip_cmd(self.venv, '', True, return_path=True)
@@ -121,12 +131,10 @@ class TestBootstrapper(unittest.TestCase):
         out, err = self.run_cmd('bootstrap')
         self.assertTrue(os.path.isdir(self.venv), self.message(out, err))
 
-        out, _ = self.run_cmd('pip freeze')
-        self.assertIn('ordereddict==1.1', out)
-
-    def test_which(self):
-        self.assertTrue(bootstrapper.which('python'))
-        self.assertFalse(bootstrapper.which('does-not-exist'))
+        pip_out, pip_err = self.run_cmd('pip freeze')
+        debug = '\n'.join((self.message(out, err),
+                           self.message(pip_out, pip_err)))
+        self.assertIn('ordereddict==1.1', pip_out, debug)
 
 
 class TestBootstrapperNoDashes(TestBootstrapper):
@@ -165,6 +173,15 @@ class TestOther(unittest.TestCase):
         index = args.index('--timeout')
         self.assertEqual(args[index + 1], '30')
 
+    def test_get_streams(self):
+        out, err = bootstrapper.get_temp_streams()
+
+        out.write('Output'), err.write('Error')
+        out.seek(0), err.seek(0)
+
+        self.assertEqual(out.read(), 'Output')
+        self.assertEqual(err.read(), 'Error')
+
     def test_read_config(self):
         kwargs = {'delete': False, 'prefix': 'bootstrap', 'suffix': '.cfg'}
         if bootstrapper.IS_PY3:
@@ -189,6 +206,10 @@ class TestOther(unittest.TestCase):
             }
         )
         self.assertEqual(config['virtualenv'], {})
+
+    def test_which(self):
+        self.assertTrue(bootstrapper.which('python'))
+        self.assertFalse(bootstrapper.which('does-not-exist'))
 
 
 if __name__ == '__main__':

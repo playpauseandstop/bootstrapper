@@ -15,6 +15,7 @@ import os
 import platform
 import subprocess
 import sys
+import tempfile
 import traceback
 
 try:
@@ -76,8 +77,9 @@ def check_pre_requirements(pre_requirements):
 
     for requirement in pre_requirements:
         if not which(requirement):
-            error('Requirement {0!r} is not found in system'.
-                  format(requirement))
+            print_error('Requirement {0!r} is not found in system'.
+                        format(requirement))
+            return False
 
     return True
 
@@ -133,12 +135,12 @@ def create_env(env, args, recreate=False, ignore_activated=False, quiet=False):
 
     if cmd:
         with disable_error_handler():
-            run_cmd(cmd, echo=not quiet)
+            result = not run_cmd(cmd, echo=not quiet)
 
     if not quiet:
         print()
 
-    return True
+    return result
 
 
 @contextmanager
@@ -152,14 +154,6 @@ def disable_error_handler():
     ERROR_HANDLER_DISABLED = False
 
 
-def error(message, code=None):
-    """
-    Print error message and exit with error code.
-    """
-    print_error(message)
-    sys.exit(code or 1)
-
-
 def error_handler(func):
     """
     Decorator to  error handling.
@@ -167,7 +161,8 @@ def error_handler(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
         """
-        Run
+        Run actual function and if exception catched and error handler enabled
+        put traceback to log file
         """
         try:
             return func(*args, **kwargs)
@@ -178,7 +173,7 @@ def error_handler(func):
             # Fail silently if error handling disabled
             if ERROR_HANDLER_DISABLED:
                 return True
-            # Otherwise save exception to log
+            # Otherwise save traceback to log
             return save_traceback(err)
     return wrapper
 
@@ -216,12 +211,15 @@ def main(*args):
     # Create parser, read arguments from direct input or command line
     args = parse_args(args or sys.argv[1:])
 
-    # Initialize bootstrapper instance Read current config from file
+    # Read current config from file and command line arguments
     config = read_config(args.config, args)
+    if config is None:
+        return True
     bootstrap = config[__script__]
 
     # Check pre-requirements
-    check_pre_requirements(bootstrap['pre_requirements'])
+    if not check_pre_requirements(bootstrap['pre_requirements']):
+        return True
 
     # Create virtual environment
     env_args = prepare_args(config['virtualenv'], bootstrap)
@@ -322,7 +320,7 @@ def pip_cmd(env, cmd, ignore_activated=False, **kwargs):
         raise OSError('No pip found at {0!r}'.format(pip_path))
 
     with disable_error_handler():
-        return run_cmd((pip_path, ) + cmd, **kwargs)
+        return not run_cmd((pip_path, ) + cmd, **kwargs)
 
 
 def prepare_args(config, bootstrap):
@@ -395,7 +393,8 @@ def read_config(filename, args):
         try:
             parser.read(filename)
         except ConfigParserError:
-            error('Cannot parse config file at {0!r}'.format(filename))
+            print_error('Cannot parse config file at {0!r}'.format(filename))
+            return None
 
         # Apply config for each possible section
         for section in sections:
@@ -446,40 +445,35 @@ def read_config(filename, args):
     return config
 
 
-def run_cmd(cmd, call=True, echo=False, fail_silently=False, shell=False):
+def run_cmd(cmd, echo=False, fail_silently=False, **kwargs):
     """
-    Run command with ``subprocess`` module and return output as result.
+    Call given tuple or string with ``subprocess.call`` function.
+
+    If ``echo`` show command to call and its output in STDOUT, otherwise hide
+    all output.
     """
-    if sys.version_info < (2, 7):
-        alt_retcode = True
-        check_output = subprocess.check_call
-    else:
-        alt_retcode = False
-        check_output = subprocess.check_output
-
-    kwargs = {'shell': shell}
-    method = subprocess.call if call else check_output
-    stdout = sys.stdout if echo else subprocess.PIPE
-
     if echo:
         cmd_str = cmd if isinstance(cmd, string_types) else ' '.join(cmd)
+        kwargs['stdout'], kwargs['stderr'] = sys.stdout, sys.stderr
         print('$ {0}'.format(cmd_str))
-
-    if call:
-        kwargs.update({'stdout': stdout})
+    else:
+        tkwargs = {'encoding': 'utf-8'} if IS_PY3 else {}
+        tout = tempfile.TemporaryFile('w+', **tkwargs)
+        terr = tempfile.TemporaryFile('w+', **tkwargs)
+        kwargs['stdout'], kwargs['stderr'] = tout, terr
 
     try:
-        retcode = method(cmd, **kwargs)
+        retcode = subprocess.call(cmd, **kwargs)
     except subprocess.CalledProcessError as err:
         if fail_silently:
             return False
-        error(str(err) if IS_PY3 else unicode(err))  # noqa
+        print_error(str(err) if IS_PY3 else unicode(err))  # noqa
 
-    if call and retcode and not fail_silently:
-        error('Command {0!r} returned non-zero exit status {1}'.
-              format(cmd_str, retcode))
+    if retcode and echo and not fail_silently:
+        print_error('Command {0!r} returned non-zero exit status {1}'.
+                    format(cmd_str, retcode))
 
-    return not retcode if alt_retcode else retcode
+    return retcode
 
 
 def run_hook(hook, config, quiet=False):
@@ -492,15 +486,15 @@ def run_hook(hook, config, quiet=False):
     if not quiet:
         print('== Step 3. Run post-bootstrap hook ==')
 
-    run_cmd(prepare_args(hook, config),
-            echo=not quiet,
-            fail_silently=True,
-            shell=True)
+    result = not run_cmd(prepare_args(hook, config),
+                         echo=not quiet,
+                         fail_silently=True,
+                         shell=True)
 
     if not quiet:
         print()
 
-    return True
+    return result
 
 
 def save_traceback(err):
@@ -547,7 +541,7 @@ def which(executable):
     not.
     """
     cmd = 'where' if IS_WINDOWS else 'which'
-    return run_cmd((cmd, executable), call=False, fail_silently=True)
+    return not run_cmd((cmd, executable), fail_silently=True)
 
 
 if __name__ == '__main__':

@@ -124,6 +124,10 @@ class TestBootstrapper(unittest.TestCase):
         out, _ = self.run_cmd('pip freeze')
         self.assertIn('ordereddict==1.1', out)
 
+    def test_which(self):
+        self.assertTrue(bootstrapper.which('python'))
+        self.assertFalse(bootstrapper.which('does-not-exist'))
+
 
 class TestBootstrapperNoDashes(TestBootstrapper):
 

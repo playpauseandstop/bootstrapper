@@ -121,13 +121,14 @@ simple process of 4 steps::
 Changelog
 =========
 
-0.3
----
+0.3 (2014-03-02)
+----------------
 
 + Do not recreate virtual environment if already working in activated virtual
   environment
 + Colorize error messages if system has pip 1.5+
-+ Support multiple command line arguments for pip 1.5 from command line
++ Support multiple command line arguments for pip 1.5 from config files
++ Ignore double handling of virtualenv/pip errors
 
 0.2.2 (2013-12-25)
 ------------------

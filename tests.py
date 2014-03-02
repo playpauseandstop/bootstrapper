@@ -14,6 +14,8 @@ except ImportError:
 
 from contextlib import contextmanager
 
+import pip
+
 import bootstrapper
 
 
@@ -30,6 +32,7 @@ allow_unverified = elementtree PIL polib
 
 class TestBootstrapper(unittest.TestCase):
 
+    config = None
     requirements = 'test-requirements.txt'
     venv = 'test-env'
 
@@ -39,6 +42,8 @@ class TestBootstrapper(unittest.TestCase):
     def tearDown(self):
         if bootstrapper.BOOTSTRAPPER_TEST_KEY in os.environ:
             os.environ.pop(bootstrapper.BOOTSTRAPPER_TEST_KEY)
+        if self.config is not None:
+            self.delete(self.config)
         self.delete(self.requirements, bootstrapper.safe_path(self.venv))
 
     def delete(self, *files):
@@ -78,6 +83,8 @@ class TestBootstrapper(unittest.TestCase):
         if cmd == 'bootstrap':
             func = bootstrapper.main
             args = ('-e', self.venv, '-r', self.requirements)
+            if self.config:
+                args += ('-c', self.config)
             if on_travis:
                 args += ('--ignore-activated', )
         elif cmd.startswith('pip '):
@@ -106,6 +113,13 @@ class TestBootstrapper(unittest.TestCase):
         self.assertIn('Full log stored to ', err, debug)
 
     def test_library_bootstrap(self):
+        # We need to allow install argparse from external
+        pip_version_info = map(int, pip.__version__.split('.'))[:2]
+        if sys.version_info[:2] < (2, 7) and pip_version_info >= (1, 5):
+            self.config = '{0}.cfg'.format(self.venv)
+            with open(self.config, 'w+') as handler:
+                handler.write('[pip]\nallow_external = argparse\n')
+
         self.assertFalse(os.path.isdir(self.venv))
         out, err = self.run_cmd('bootstrap')
         self.assertTrue(os.path.isdir(self.venv))

@@ -11,5 +11,7 @@ venv/
 
 MANIFEST
 
+test-env.cfg
 test-requirements.txt
+venv.cfg
 venvrequirements.txt

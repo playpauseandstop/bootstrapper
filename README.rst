@@ -121,6 +121,11 @@ simple process of 4 steps::
 Changelog
 =========
 
+0.3.1 (2014-03-08)
+------------------
+
++ Fix ``UnboundLocalError`` in function to create virtual environment.
+
 0.3 (2014-03-02)
 ----------------
 

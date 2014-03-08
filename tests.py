@@ -153,6 +153,14 @@ class TestBootstrapper(unittest.TestCase):
         debug = '\n'.join((base_debug, self.message(pip_out, pip_err)))
         self.assertIn('ordereddict==1.1', pip_out, debug)
 
+    def test_repeatable_bootstrap(self):
+        self.init_requirements('ordereddict==1.1')
+        _, err = self.run_cmd('bootstrap')
+        self.assertEqual(err, '')
+
+        _, err = self.run_cmd('bootstrap')
+        self.assertEqual(err, '')
+
 
 class TestBootstrapperNoDashes(TestBootstrapper):
 

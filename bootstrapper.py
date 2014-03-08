@@ -112,6 +112,7 @@ def create_env(env, args, recreate=False, ignore_activated=False, quiet=False):
     Create virtual environment.
     """
     cmd = None
+    result = True
 
     inside_env = hasattr(sys, 'real_prefix') or os.environ.get('VIRTUAL_ENV')
     env_exists = os.path.isdir(env)

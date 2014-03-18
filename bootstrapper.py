@@ -38,7 +38,7 @@ except ImportError:
 __author__ = 'Igor Davydenko'
 __license__ = 'BSD License'
 __script__ = 'bootstrapper'
-__version__ = '0.3.1'
+__version__ = '0.3.2-dev'
 
 
 IS_PY3 = sys.version_info[0] == 3
@@ -467,6 +467,8 @@ def run_cmd(cmd, echo=False, fail_silently=False, **kwargs):
     If ``echo`` show command to call and its output in STDOUT, otherwise hide
     all output.
     """
+    out, err = None, None
+
     if echo:
         cmd_str = cmd if isinstance(cmd, string_types) else ' '.join(cmd)
         kwargs['stdout'], kwargs['stderr'] = sys.stdout, sys.stderr
@@ -481,6 +483,11 @@ def run_cmd(cmd, echo=False, fail_silently=False, **kwargs):
         if fail_silently:
             return False
         print_error(str(err) if IS_PY3 else unicode(err))  # noqa
+    finally:
+        if out:
+            out.close()
+        if err:
+            err.close()
 
     if retcode and echo and not fail_silently:
         print_error('Command {0!r} returned non-zero exit status {1}'.

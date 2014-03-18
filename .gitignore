@@ -9,6 +9,8 @@ dist/
 test-env/
 venv/
 
+.coverage
+.python-version
 MANIFEST
 
 test-env.cfg

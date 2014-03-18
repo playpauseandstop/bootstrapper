@@ -226,6 +226,9 @@ class TestOther(unittest.TestCase):
         self.assertEqual(out.read(), 'Output')
         self.assertEqual(err.read(), 'Error')
 
+        out.close()
+        err.close()
+
     def test_read_config(self):
         kwargs = {'delete': False, 'prefix': 'bootstrap', 'suffix': '.cfg'}
         if bootstrapper.IS_PY3:

@@ -395,39 +395,43 @@ def read_config(filename, args):
     sections = set(iterkeys(default))
 
     # Expand user and environ vars in config filename
+    is_default = filename == DEFAULT_CONFIG
     filename = os.path.expandvars(os.path.expanduser(filename))
 
     # Read config if it exists on disk
-    if os.path.isfile(filename):
-        parser = SafeConfigParser()
+    if not is_default and not os.path.isfile(filename):
+        print_error('Config file does not exist at {0!r}'.format(filename))
+        return None
 
-        try:
-            parser.read(filename)
-        except ConfigParserError:
-            print_error('Cannot parse config file at {0!r}'.format(filename))
-            return None
+    parser = SafeConfigParser()
 
-        # Apply config for each possible section
-        for section in sections:
-            if not parser.has_section(section):
-                continue
+    try:
+        parser.read(filename)
+    except ConfigParserError:
+        print_error('Cannot parse config file at {0!r}'.format(filename))
+        return None
 
-            items = parser.items(section)
+    # Apply config for each possible section
+    for section in sections:
+        if not parser.has_section(section):
+            continue
 
-            # Make auto convert here for integers and boolean values
-            for key, value in items:
+        items = parser.items(section)
+
+        # Make auto convert here for integers and boolean values
+        for key, value in items:
+            try:
+                value = int(value)
+            except (TypeError, ValueError):
                 try:
-                    value = int(value)
-                except (TypeError, ValueError):
-                    try:
-                        value = bool(strtobool(value))
-                    except ValueError:
-                        pass
+                    value = bool(strtobool(value))
+                except ValueError:
+                    pass
 
-                if section in converters and key in converters[section]:
-                    value = converters[section][key](value)
+            if section in converters and key in converters[section]:
+                value = converters[section][key](value)
 
-                config[section][key] = value
+            config[section][key] = value
 
     # Update config with default values if necessary
     for section, data in iteritems(default):

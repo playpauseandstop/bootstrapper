@@ -133,6 +133,21 @@ class TestBootstrapper(unittest.TestCase):
         self.assertIn('playpauseandstop/bootstrapper.git@', pip_out, debug)
         self.assertIn('#egg=bootstrapper-', pip_out, debug)
 
+    def test_no_config_error(self):
+        self.config = '/path/does-not-exist.cfg'
+        self.assertFalse(os.path.isfile(self.config))
+
+        out, err = self.run_cmd('bootstrap')
+        debug = self.message(out, err)
+
+        self.assertEqual(out, '', debug)
+        self.assertIn(
+            'ERROR: Config file does not exist at {0!r}. Exit...'.
+            format(self.config),
+            err,
+            debug
+        )
+
     def test_pip_cmd(self):
         pip_path = bootstrapper.pip_cmd(self.venv, '', True, return_path=True)
         self.assertEqual(

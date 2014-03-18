@@ -97,7 +97,11 @@ class TestBootstrapper(unittest.TestCase):
         with self.redirect_streams(out, err):
             func(*args, **kwargs)
 
-        return (out.read(), err.read())
+        try:
+            return (out.read(), err.read())
+        finally:
+            out.close()
+            err.close()
 
     def test_install_error(self):
         os.environ.pop(bootstrapper.BOOTSTRAPPER_TEST_KEY)

@@ -3,6 +3,7 @@
 from __future__ import absolute_import
 
 import os
+import shlex
 import shutil
 import sys
 import tempfile
@@ -80,9 +81,10 @@ class TestBootstrapper(unittest.TestCase):
         on_travis = 'TRAVIS_PYTHON_VERSION' in os.environ
         out, err = bootstrapper.get_temp_streams()
 
-        if cmd == 'bootstrap':
+        if cmd.startswith('bootstrap'):
             func = bootstrapper.main
-            args = ('-e', self.venv, '-r', self.requirements)
+            args = tuple(shlex.split(cmd)[1:])
+            args += ('-e', self.venv, '-r', self.requirements)
             if self.config:
                 args += ('-c', self.config)
             if on_travis:
@@ -151,6 +153,12 @@ class TestBootstrapper(unittest.TestCase):
             err,
             debug
         )
+
+    def test_no_post_bootstrap_hook(self):
+        self.init_requirements('does-not-exist==X.Y')
+        out, err = self.run_cmd('bootstrap -C "echo Succeed..."')
+        debug = self.message(out, err)
+        self.assertNotIn('Succeed...', out, debug)
 
     def test_pip_cmd(self):
         pip_path = bootstrapper.pip_cmd(self.venv, '', True, return_path=True)

@@ -202,12 +202,15 @@ def install(env, requirements, args, ignore_activated=False, quiet=False):
     if not quiet:
         print('== Step 2. Install {0} =='.format(label))
 
-    pip_cmd(env, ('install', ) + args, ignore_activated, echo=not quiet)
+    result = not pip_cmd(env,
+                         ('install',) + args,
+                         ignore_activated,
+                         echo=not quiet)
 
     if not quiet:
         print()
 
-    return True
+    return result
 
 
 @error_handler
@@ -234,19 +237,27 @@ def main(*args):
 
     # Create virtual environment
     env_args = prepare_args(config['virtualenv'], bootstrap)
-    create_env(bootstrap['env'],
-               env_args,
-               bootstrap['recreate'],
-               bootstrap['ignore_activated'],
-               bootstrap['quiet'])
+    if not create_env(
+        bootstrap['env'],
+        env_args,
+        bootstrap['recreate'],
+        bootstrap['ignore_activated'],
+        bootstrap['quiet']
+    ):
+        # Exit if couldn't create virtual environment
+        return True
 
     # And install library or project here
     pip_args = prepare_args(config['pip'], bootstrap)
-    install(bootstrap['env'],
-            bootstrap['requirements'],
-            pip_args,
-            bootstrap['ignore_activated'],
-            bootstrap['quiet'])
+    if not install(
+        bootstrap['env'],
+        bootstrap['requirements'],
+        pip_args,
+        bootstrap['ignore_activated'],
+        bootstrap['quiet']
+    ):
+        # Exist if couldn't install requirements into venv
+        return True
 
     # Run post-bootstrap hook
     run_hook(bootstrap['hook'], bootstrap, bootstrap['quiet'])
@@ -331,7 +342,7 @@ def pip_cmd(env, cmd, ignore_activated=False, **kwargs):
         raise OSError('No pip found at {0!r}'.format(pip_path))
 
     with disable_error_handler():
-        return not run_cmd((pip_path, ) + cmd, **kwargs)
+        return run_cmd((pip_path, ) + cmd, **kwargs)
 
 
 def prepare_args(config, bootstrap):

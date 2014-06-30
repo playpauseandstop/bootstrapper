@@ -121,6 +121,13 @@ simple process of 4 steps::
 Changelog
 =========
 
+0.4 (not released yet)
+----------------------
+
++ Exit from bootstrap process if given config file doesn't exist
++ Do not run post-bootstrap hook if environment creation or requirements
+  installation ended with error
+
 0.3.1 (2014-03-08)
 ------------------
 

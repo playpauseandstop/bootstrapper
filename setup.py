@@ -10,8 +10,12 @@ from setuptools import setup
 DIRNAME = os.path.abspath(os.path.dirname(__file__))
 rel = lambda *parts: os.path.abspath(os.path.join(DIRNAME, *parts))
 
-README = open(rel('README.rst')).read()
-INIT_PY = open(rel('bootstrapper.py')).read()
+with open(rel('README.rst')) as readme_file:
+    README = readme_file.read()
+
+with open(rel('bootstrapper.py')) as bootstrapper_file:
+    INIT_PY = bootstrapper_file.read()
+
 VERSION = re.findall("__version__ = '([^']+)'", INIT_PY)[0]
 
 

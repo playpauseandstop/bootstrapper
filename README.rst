@@ -121,7 +121,7 @@ simple process of 4 steps::
 Changelog
 =========
 
-0.4 (not released yet)
+0.4 (2014-08-25)
 ----------------------
 
 + Exit from bootstrap script if given config file doesn't exist

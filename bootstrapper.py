@@ -38,7 +38,7 @@ except ImportError:
 __author__ = 'Igor Davydenko'
 __license__ = 'BSD License'
 __script__ = 'bootstrapper'
-__version__ = '0.3.2-dev'
+__version__ = '0.4'
 
 
 IS_PY3 = sys.version_info[0] == 3

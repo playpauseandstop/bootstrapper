@@ -56,6 +56,9 @@ By default, next configuration would be used::
     [pip]
     download_cache = ~/.bootstrapper/pip-cache/
 
+..note:: Download cache option would be used only for pip 1.x as pip 6.0
+  introduce changes to caching and don't use this option anymore.
+
 Your configuration or arguments from command line overwrite default options,
 when arguments from command line overwrite your configuration as well.
 
@@ -137,7 +140,7 @@ Changelog
 0.3.1 (2014-03-08)
 ------------------
 
-+ Fix ``UnboundLocalError`` in function to create virtual environment.
++ Fix ``UnboundLocalError`` in function to create virtual environment
 
 0.3 (2014-03-02)
 ----------------
@@ -192,21 +195,21 @@ Changelog
 
 - Disable ``--use-mirrors`` key by default for installing requirements via
   ``pip`` cause of latest `PyPI CDN changes
-  <https://twitter.com/pythonpackaging/status/339143339356061696>`_.
+  <https://twitter.com/pythonpackaging/status/339143339356061696>`_
 
 0.1.2 (2013-05-28)
 ------------------
 
 + Make ability to reuse cached pip files by storing them in ``~/.bootstrapper``
-  user directory by default.
+  user directory by default
 
 0.1.1 (2013-01-02)
 ------------------
 
 + Use ``--use-mirrors`` key by default when ``pip`` installs requirements to
-  virtual environment.
+  virtual environment
 
 0.1 (2012-09-26)
 ----------------
 
-- Initial release.
+- Initial release

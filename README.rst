@@ -3,10 +3,10 @@ bootstrapper
 ============
 
 .. image:: https://travis-ci.org/playpauseandstop/bootstrapper.png?branch=master
-    :target: https://travis-ci.org/playpauseandstop/bootstrapper
+   :target: https://travis-ci.org/playpauseandstop/bootstrapper
 
 .. image:: https://pypip.in/v/bootstrapper/badge.png
-    :target: https://pypi.python.org/pypi/bootstrapper
+   :target: https://pypi.python.org/pypi/bootstrapper
 
 Bootstrap Python projects or libraries by checking system pre-requirements if
 necessary, creating virtual environment, installing all requirements there and
@@ -27,7 +27,7 @@ As easy as::
 License
 =======
 
-``bootstrapper`` is licensed under the `BSD License
+``bootstrapper`` is licensed under the terms of `BSD License
 <https://github.com/playpauseandstop/bootstrapper/blob/master/LICENSE>`_.
 
 Configuration
@@ -127,89 +127,89 @@ Changelog
 0.5 (2015-01-07)
 ----------------
 
-+ Do not use ``--download-cache`` option for ``pip>=6.0``. More about `pip
+* Do not use ``--download-cache`` option for ``pip>=6.0``. More about new `pip
   caching <https://pip.pypa.io/en/latest/reference/pip_install.html#caching>`_
 
 0.4 (2014-08-25)
 ----------------
 
-+ Exit from bootstrap script if given config file doesn't exist
-+ Do not run post-bootstrap hook if environment creation or requirements
+* Exit from bootstrap script if given config file doesn't exist
+* Do not run post-bootstrap hook if environment creation or requirements
   installation ended with error
 
 0.3.1 (2014-03-08)
 ------------------
 
-+ Fix ``UnboundLocalError`` in function to create virtual environment
+* Fix ``UnboundLocalError`` in function to create virtual environment
 
 0.3 (2014-03-02)
 ----------------
 
-+ Do not recreate virtual environment if already working in activated virtual
+* Do not recreate virtual environment if already working in activated virtual
   environment
-+ Colorize error messages if system has pip 1.5+
-+ Support multiple command line arguments for pip 1.5 from config files
-+ Ignore double handling of virtualenv/pip errors
+* Colorize error messages if system has pip 1.5+
+* Support multiple command line arguments for pip 1.5 from config files
+* Ignore double handling of virtualenv/pip errors
 
 0.2.2 (2013-12-25)
 ------------------
 
-+ More fixes to MS Windows platform
-+ Ability to use ``{pip}`` in bootstrap.cfg as path to pip different in MS
+* More fixes to MS Windows platform
+* Ability to use ``{pip}`` in bootstrap.cfg as path to pip different in MS
   Windows and Unix systems
-+ Store full traceback on interrupting workflow or unexcepted error
+* Store full traceback on interrupting workflow or unexcepted error
 
 0.2.1 (2013-12-20)
 ------------------
 
-+ Fix installing requirements in venv on MS Windows platform
+* Fix installing requirements in venv on MS Windows platform
 
 0.2 (2013-12-18)
 ----------------
 
-+ Full support of MS Windows platform
-+ Ability to use bootstrapper for libraries with only ``setup.py`` as well as
+* Full support of MS Windows platform
+* Ability to use bootstrapper for libraries with only ``setup.py`` as well as
   for projects with ``requirements.txt`` or other requirements file
-- Remove support of major/minor requirements in favor of `tox
+* Remove support of major/minor requirements in favor of `tox
   <http://tox.readthedocs.org>`_
 
 0.1.6 (2013-12-17)
 ------------------
 
-+ Initial support of MS Windows platform
+* Initial support of MS Windows platform
 
 0.1.5 (2013-06-02)
 ------------------
 
-+ Real support of Python 3 versions
-+ Enable Travis CI support
-+ Refactor bootstrapper to Python module
+* Real support of Python 3 versions
+* Enable Travis CI support
+* Refactor bootstrapper to Python module
 
 0.1.4 (2013-06-02)
 ------------------
 
-+ Support Python 3 versions
+* Support Python 3 versions
 
 0.1.3 (2013-05-28)
 ------------------
 
-- Disable ``--use-mirrors`` key by default for installing requirements via
+* Disable ``--use-mirrors`` key by default for installing requirements via
   ``pip`` cause of latest `PyPI CDN changes
   <https://twitter.com/pythonpackaging/status/339143339356061696>`_
 
 0.1.2 (2013-05-28)
 ------------------
 
-+ Make ability to reuse cached pip files by storing them in ``~/.bootstrapper``
+* Make ability to reuse cached pip files by storing them in ``~/.bootstrapper``
   user directory by default
 
 0.1.1 (2013-01-02)
 ------------------
 
-+ Use ``--use-mirrors`` key by default when ``pip`` installs requirements to
+* Use ``--use-mirrors`` key by default when ``pip`` installs requirements to
   virtual environment
 
 0.1 (2012-09-26)
 ----------------
 
-- Initial release
+* Initial release

@@ -56,8 +56,8 @@ By default, next configuration would be used::
     [pip]
     download_cache = ~/.bootstrapper/pip-cache/
 
-..note:: Download cache option would be used only for pip 1.x as pip 6.0
-  introduce changes to caching and don't use this option anymore.
+.. note:: Download cache option would be used only for pip 1.x as pip 6.0
+   introduce changes to caching and don't use this option anymore.
 
 Your configuration or arguments from command line overwrite default options,
 when arguments from command line overwrite your configuration as well.

@@ -19,9 +19,12 @@ import tempfile
 import traceback
 
 try:
-    from configparser import Error as ConfigParserError, SafeConfigParser
+    from configparser import Error as ConfigParserError, ConfigParser
 except ImportError:
-    from ConfigParser import Error as ConfigParserError, SafeConfigParser
+    from ConfigParser import (
+        Error as ConfigParserError,
+        SafeConfigParser as ConfigParser,
+    )
 
 from collections import defaultdict
 from contextlib import contextmanager
@@ -416,7 +419,7 @@ def read_config(filename, args):
         print_error('Config file does not exist at {0!r}'.format(filename))
         return None
 
-    parser = SafeConfigParser()
+    parser = ConfigParser()
 
     try:
         parser.read(filename)

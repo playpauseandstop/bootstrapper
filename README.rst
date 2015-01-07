@@ -121,8 +121,14 @@ simple process of 4 steps::
 Changelog
 =========
 
+0.5 (2015-01-07)
+----------------
+
++ Do not use ``--download-cache`` option for ``pip>=6.0``. More about `pip
+  caching <https://pip.pypa.io/en/latest/reference/pip_install.html#caching>`_
+
 0.4 (2014-08-25)
-----------------------
+----------------
 
 + Exit from bootstrap script if given config file doesn't exist
 + Do not run post-bootstrap hook if environment creation or requirements

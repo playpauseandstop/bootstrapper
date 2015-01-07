@@ -208,16 +208,20 @@ class TestOther(unittest.TestCase):
             os.unlink(self.config.name)
 
     def test_config_to_args(self):
+        default_pip_config = bootstrapper.CONFIG['pip']
         config = {
             'allow_external': ['elementtree', 'PIL', 'polib'],
-            'download_cache': bootstrapper.CONFIG['pip']['download_cache'],
             'quiet': True,
             'timeout': 30,
         }
+        if default_pip_config.get('download_cache'):
+            config['download_cache'] = default_pip_config['download_cache']
+
         args = bootstrapper.config_to_args(config)
 
         self.assertEqual(args.count('--allow-external'), 3)
-        self.assertEqual(args.count('--download-cache'), 1)
+        if default_pip_config.get('download_cache'):
+            self.assertEqual(args.count('--download-cache'), 1)
         self.assertIn('--quiet', args)
         self.assertIn('--timeout', args)
         self.assertIn('30', args)
@@ -238,6 +242,16 @@ class TestOther(unittest.TestCase):
         err.close()
 
     def test_read_config(self):
+        default_pip_config = bootstrapper.CONFIG['pip']
+        expected_pip_config = {
+            'allow_external': ['elementtree', 'PIL', 'polib'],
+            'allow_unverified': ['elementtree', 'PIL', 'polib'],
+        }
+        if default_pip_config.get('download_cache'):
+            expected_pip_config.update({
+                'download_cache': default_pip_config['download_cache'],
+            })
+
         kwargs = {'delete': False, 'prefix': 'bootstrap', 'suffix': '.cfg'}
         if bootstrapper.IS_PY3:
             kwargs.update({'encoding': 'utf-8'})
@@ -252,14 +266,7 @@ class TestOther(unittest.TestCase):
         script = bootstrapper.__script__
         self.assertEqual(config[script]['pre_requirements'], ['python'])
         self.assertTrue(config[script]['quiet'])
-        self.assertEqual(
-            config['pip'],
-            {
-                'allow_external': ['elementtree', 'PIL', 'polib'],
-                'allow_unverified': ['elementtree', 'PIL', 'polib'],
-                'download_cache': bootstrapper.CONFIG['pip']['download_cache'],
-            }
-        )
+        self.assertEqual(config['pip'], expected_pip_config)
         self.assertEqual(config['virtualenv'], {})
 
     def test_which(self):

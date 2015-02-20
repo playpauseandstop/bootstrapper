@@ -66,7 +66,7 @@ CONFIG = {
         'download_cache': safe_path(os.path.expanduser(
             os.path.join('~', '.{0}'.format(__script__), 'pip-cache')
         )),
-    } if int(pip.__version__.split('.')[0]) < 6 else {},
+    } if int(getattr(pip, '__version__', '1.1').split('.')[0]) < 6 else {},
     'virtualenv': {},
 }
 DEFAULT_CONFIG = 'bootstrap.cfg'

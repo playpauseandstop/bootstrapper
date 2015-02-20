@@ -120,7 +120,8 @@ class TestBootstrapper(unittest.TestCase):
 
     def test_library_bootstrap(self):
         # We need to allow install argparse from external
-        pip_version_info = tuple(map(int, pip.__version__.split('.')))[:2]
+        pip_version_info = tuple(
+            map(int, getattr(pip, '__version__', '1.1').split('.')))[:2]
         if sys.version_info[:2] < (2, 7) and pip_version_info > (1, 4):
             self.config = '{0}.cfg'.format(self.venv.rstrip('/'))
             with open(self.config, 'w+') as handler:

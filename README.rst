@@ -6,7 +6,7 @@ bootstrapper
     :target: https://travis-ci.org/playpauseandstop/bootstrapper
     :alt: Travis CI
 
-.. image:: https://pypip.in/version/chronometer/badge.svg?style=flat
+.. image:: https://pypip.in/version/bootstrapper/badge.svg?style=flat
     :target: https://pypi.python.org/pypi/bootstrapper/
     :alt: Latest Version
 
@@ -134,10 +134,11 @@ simple process of 4 steps::
 Changelog
 =========
 
-0.6 (not released yet)
+0.6 (2015-03-15)
 ----------------------
 
 * Fix support of ancient pip versions
+* Provide docstrings to internal bootstrapper functions
 
 
 0.5 (2015-01-07)

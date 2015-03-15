@@ -46,15 +46,6 @@ __script__ = 'bootstrapper'
 __version__ = '0.6.dev0'
 
 
-IS_PY3 = sys.version_info[0] == 3
-IS_WINDOWS = platform.system() == 'Windows'
-
-iteritems = lambda seq: seq.items() if IS_PY3 else seq.iteritems()
-iterkeys = lambda seq: seq.keys() if IS_PY3 else seq.iterkeys()
-safe_path = lambda value: value.replace('/', os.sep) if IS_WINDOWS else value
-string_types = (bytes, str) if IS_PY3 else (basestring, )  # noqa
-
-
 BOOTSTRAPPER_TEST_KEY = 'BOOTSTRAPPER_TEST'
 CONFIG = {
     __script__: {
@@ -66,16 +57,27 @@ CONFIG = {
         'download_cache': safe_path(os.path.expanduser(
             os.path.join('~', '.{0}'.format(__script__), 'pip-cache')
         )),
-    } if int(getattr(pip, '__version__', '1.1').split('.')[0]) < 6 else {},
+    } if int(getattr(pip, '__version__', '1.x').split('.')[0]) < 6 else {},
     'virtualenv': {},
 }
 DEFAULT_CONFIG = 'bootstrap.cfg'
 ERROR_HANDLER_DISABLED = False
 
+IS_PY3 = sys.version_info[0] == 3
+IS_WINDOWS = platform.system() == 'Windows'
+
+iteritems = lambda seq: iter(seq.items()) if IS_PY3 else seq.iteritems()
+iterkeys = lambda seq: iter(seq.keys()) if IS_PY3 else seq.iterkeys()
+safe_path = lambda value: value.replace('/', os.sep) if IS_WINDOWS else value
+string_types = (str, ) if IS_PY3 else (basestring, )  # noqa
+
 
 def check_pre_requirements(pre_requirements):
-    """
-    Check all necessary system requirements to exist.
+    """Check all necessary system requirements to exist.
+
+    :param pre_requirements:
+        Sequence of pre-requirements to check by running
+        ``where <pre_requirement>`` on Windows and ``which ...`` elsewhere.
     """
     pre_requirements = set(pre_requirements or [])
     pre_requirements.add('virtualenv')
@@ -90,8 +92,9 @@ def check_pre_requirements(pre_requirements):
 
 
 def config_to_args(config):
-    """
-    Convert config dict to arguments list.
+    """Convert config dict to arguments list.
+
+    :param config: Configuration dict.
     """
     result = []
 
@@ -113,8 +116,15 @@ def config_to_args(config):
 
 
 def create_env(env, args, recreate=False, ignore_activated=False, quiet=False):
-    """
-    Create virtual environment.
+    """Create virtual environment.
+
+    :param env: Virtual environment name.
+    :param args: Pass given arguments to ``virtualenv`` script.
+    :param recerate: Recreate virtual environment? By default: False
+    :param ignore_activated:
+        Ignore already activated virtual environment and create new one. By
+        default: False
+    :param quiet: Do not output messages into terminal. By default: False
     """
     cmd = None
     result = True
@@ -151,9 +161,7 @@ def create_env(env, args, recreate=False, ignore_activated=False, quiet=False):
 
 @contextmanager
 def disable_error_handler():
-    """
-    Temporary disable error handling.
-    """
+    """Context manager to temporary disable error handling."""
     global ERROR_HANDLER_DISABLED
     ERROR_HANDLER_DISABLED = True
     yield
@@ -161,9 +169,7 @@ def disable_error_handler():
 
 
 def error_handler(func):
-    """
-    Decorator to  error handling.
-    """
+    """Decorator to error handling."""
     @wraps(func)
     def wrapper(*args, **kwargs):
         """
@@ -185,17 +191,22 @@ def error_handler(func):
 
 
 def get_temp_streams():
-    """
-    Return two temporary file handlers for STDOUT and STDERR.
-    """
+    """Return two temporary file handlers for STDOUT and STDERR."""
     kwargs = {'encoding': 'utf-8'} if IS_PY3 else {}
     return (tempfile.TemporaryFile('w+', **kwargs),
             tempfile.TemporaryFile('w+', **kwargs))
 
 
 def install(env, requirements, args, ignore_activated=False, quiet=False):
-    """
-    Install library or project into virtual environment.
+    """Install library or project into virtual environment.
+
+    :param env: Use given virtual environment name.
+    :param requirements: Use given requirements file for pip.
+    :param args: Pass given arguments to pip script.
+    :param ignore_activated:
+        Do not run pip inside already activated virtual environment. By
+        default: False
+    :param quiet: Do not output message to terminal. By default: False
     """
     if os.path.isfile(requirements):
         args += ('-r', requirements)
@@ -220,11 +231,13 @@ def install(env, requirements, args, ignore_activated=False, quiet=False):
 
 @error_handler
 def main(*args):
-    """
+    r"""
     Bootstrap Python projects and libraries with virtualenv and pip.
 
     Also check system requirements before bootstrap and run post bootstrap
     hook if any.
+
+    :param \*args: Command line arguments list.
     """
     # Create parser, read arguments from direct input or command line
     with disable_error_handler():
@@ -279,6 +292,8 @@ def parse_args(args):
     """
     Parse args from command line by creating argument parser instance and
     process it.
+
+    :param args: Command line arguments list.
     """
     from argparse import ArgumentParser
 
@@ -324,8 +339,15 @@ def parse_args(args):
 
 
 def pip_cmd(env, cmd, ignore_activated=False, **kwargs):
-    """
-    Run pip command in given or activated virtual environment.
+    r"""Run pip command in given or activated virtual environment.
+
+    :param env: Virtual environment name.
+    :param cmd: Pip subcommand to run.
+    :param ignore_activated:
+        Ignore activated virtual environment and use given venv instead. By
+        default: False
+    :param \*\*kwargs:
+        Additional keyword arguments to be passed to :func:`~run_cmd`
     """
     cmd = tuple(cmd)
     dirname = safe_path(env)
@@ -351,8 +373,10 @@ def pip_cmd(env, cmd, ignore_activated=False, **kwargs):
 
 
 def prepare_args(config, bootstrap):
-    """
-    Convert config dict to command line args line.
+    """Convert config dict to command line args line.
+
+    :param config: Configuration dict.
+    :param bootstrap: Bootstrapper configuration dict.
     """
     config = copy.deepcopy(config)
     environ = dict(copy.deepcopy(os.environ))
@@ -374,8 +398,12 @@ def prepare_args(config, bootstrap):
 
 
 def print_error(message, wrap=True):
-    """
-    Print error message to stderr, using ANSI-colors.
+    """Print error message to stderr, using ANSI-colors.
+
+    :param message: Message to print
+    :param wrap:
+        Wrap message into ``ERROR: <message>. Exit...`` template. By default:
+        True
     """
     if wrap:
         message = 'ERROR: {0}. Exit...'.format(message.rstrip('.'))
@@ -392,6 +420,9 @@ def read_config(filename, args):
     path to current work directory.
 
     If no config file found, default ``CONFIG`` would be used.
+
+    :param filename: Read config from given filename.
+    :param args: Parsed command line arguments.
     """
     # Initial vars
     config = defaultdict(dict)
@@ -477,11 +508,18 @@ def read_config(filename, args):
 
 
 def run_cmd(cmd, echo=False, fail_silently=False, **kwargs):
-    """
-    Call given tuple or string with ``subprocess.call`` function.
+    r"""Call given command with ``subprocess.call`` function.
 
-    If ``echo`` show command to call and its output in STDOUT, otherwise hide
-    all output.
+    :param cmd: Command to run.
+    :type cmd: tuple or str
+    :param echo:
+        If enabled show command to call and its output in STDOUT, otherwise
+        hide all output. By default: False
+    :param fail_silently: Do not raise exception on error. By default: False
+    :param \*\*kwargs:
+        Additional keyword arguments to be passed to ``subprocess.call``
+        function. STDOUT and STDERR streams would be setup inside of function
+        to ensure hiding command output in case of disabling ``echo``.
     """
     out, err = None, None
 
@@ -513,8 +551,11 @@ def run_cmd(cmd, echo=False, fail_silently=False, **kwargs):
 
 
 def run_hook(hook, config, quiet=False):
-    """
-    Run post-bootstrap hook if any.
+    """Run post-bootstrap hook if any.
+
+    :param hook: Hook to run.
+    :param config: Configuration dict.
+    :param quiet: Do not output messages to STDOUT/STDERR. By default: False
     """
     if not hook:
         return True
@@ -534,8 +575,9 @@ def run_hook(hook, config, quiet=False):
 
 
 def save_traceback(err):
-    """
-    Save error traceback to bootstrapper log file.
+    """Save error traceback to bootstrapper log file.
+
+    :param err: Catched exception.
     """
     # Store logs to ~/.bootstrapper directory
     dirname = safe_path(os.path.expanduser(
@@ -563,8 +605,11 @@ def save_traceback(err):
 
 
 def smart_str(value, encoding='utf-8', errors='strict'):
-    """
-    Convert Python object to string.
+    """Convert Python object to string.
+
+    :param value: Python object to convert.
+    :param encoding: Encoding to use if in Python 2 given object is unicode.
+    :param errors: Errors mode to use if in Python 2 given object is unicode.
     """
     if not IS_PY3 and isinstance(value, unicode):  # noqa
         return value.encode(encoding, errors)
@@ -575,6 +620,8 @@ def which(executable):
     """
     Shortcut to check whether executable available in current environment or
     not.
+
+    :param executable: Executable to check.
     """
     cmd = 'where' if IS_WINDOWS else 'which'
     return not run_cmd((cmd, executable), fail_silently=True)

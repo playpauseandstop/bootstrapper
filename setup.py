@@ -29,7 +29,7 @@ setup(
     url='https://github.com/playpauseandstop/bootstrapper',
     platforms='any',
     classifiers=[
-        'Development Status :: 4 - Beta',
+        'Development Status :: 5 - Stable',
         'Intended Audience :: Developers',
         'Intended Audience :: System Administrators',
         'License :: OSI Approved :: BSD License',

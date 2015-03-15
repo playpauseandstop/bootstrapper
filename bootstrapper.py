@@ -53,11 +53,7 @@ CONFIG = {
         'requirements': 'requirements.txt',
         'quiet': False,
     },
-    'pip': {
-        'download_cache': safe_path(os.path.expanduser(
-            os.path.join('~', '.{0}'.format(__script__), 'pip-cache')
-        )),
-    } if int(getattr(pip, '__version__', '1.x').split('.')[0]) < 6 else {},
+    'pip': {},
     'virtualenv': {},
 }
 DEFAULT_CONFIG = 'bootstrap.cfg'
@@ -66,9 +62,6 @@ ERROR_HANDLER_DISABLED = False
 IS_PY3 = sys.version_info[0] == 3
 IS_WINDOWS = platform.system() == 'Windows'
 
-iteritems = lambda seq: iter(seq.items()) if IS_PY3 else seq.iteritems()
-iterkeys = lambda seq: iter(seq.keys()) if IS_PY3 else seq.iterkeys()
-safe_path = lambda value: value.replace('/', os.sep) if IS_WINDOWS else value
 string_types = (str, ) if IS_PY3 else (basestring, )  # noqa
 
 
@@ -227,6 +220,16 @@ def install(env, requirements, args, ignore_activated=False, quiet=False):
         print()
 
     return result
+
+
+def iteritems(data, **kwargs):
+    """Iterate over dict items."""
+    return iter(data.items(**kwargs)) if IS_PY3 else data.iteritems(**kwargs)
+
+
+def iterkeys(data, **kwargs):
+    """Iterate over dict keys."""
+    return iter(data.keys(**kwargs)) if IS_PY3 else data.iterkeys(**kwargs)
 
 
 @error_handler
@@ -441,6 +444,12 @@ def read_config(filename, args):
     default = copy.deepcopy(CONFIG)
     sections = set(iterkeys(default))
 
+    # Append download-cache for old pip versions
+    if int(getattr(pip, '__version__', '1.x')[0]) < 6:
+        default['pip']['download_cache'] = safe_path(os.path.expanduser(
+            os.path.join('~', '.{0}'.format(__script__), 'pip-cache')
+        ))
+
     # Expand user and environ vars in config filename
     is_default = filename == DEFAULT_CONFIG
     filename = os.path.expandvars(os.path.expanduser(filename))
@@ -572,6 +581,14 @@ def run_hook(hook, config, quiet=False):
         print()
 
     return result
+
+
+def safe_path(path):
+    """Replace slashes for Windows pathes.
+
+    :param path: OS-independent path value.
+    """
+    return path.replace('/', os.sep) if IS_WINDOWS else path
 
 
 def save_traceback(err):

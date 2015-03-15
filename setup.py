@@ -8,7 +8,11 @@ from setuptools import setup
 
 
 DIRNAME = os.path.abspath(os.path.dirname(__file__))
-rel = lambda *parts: os.path.abspath(os.path.join(DIRNAME, *parts))
+
+
+def rel(*parts):
+    return os.path.abspath(os.path.join(DIRNAME, *parts))
+
 
 with open(rel('README.rst')) as readme_file:
     README = readme_file.read()

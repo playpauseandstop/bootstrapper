@@ -2,11 +2,21 @@
 bootstrapper
 ============
 
-.. image:: https://travis-ci.org/playpauseandstop/bootstrapper.png?branch=master
-   :target: https://travis-ci.org/playpauseandstop/bootstrapper
+.. image:: https://travis-ci.org/playpauseandstop/bootstrapper.png?branch=master&style=flat
+    :target: https://travis-ci.org/playpauseandstop/bootstrapper
+    :alt: Travis CI
 
-.. image:: https://pypip.in/v/bootstrapper/badge.png
-   :target: https://pypi.python.org/pypi/bootstrapper
+.. image:: https://pypip.in/version/chronometer/badge.svg?style=flat
+    :target: https://pypi.python.org/pypi/bootstrapper/
+    :alt: Latest Version
+
+.. image:: https://pypip.in/py_versions/bootstrapper/badge.svg?style=flat
+    :target: https://pypi.python.org/pypi/bootstrapper/
+    :alt: Python versions
+
+.. image:: https://pypip.in/license/bootstrapper/badge.svg?style=flat
+    :target: https://github.com/playpauseandstop/bootstrapper/blob/master/LICENSE
+    :alt: BSD License
 
 Bootstrap Python projects or libraries by checking system pre-requirements if
 necessary, creating virtual environment, installing all requirements there and
@@ -123,6 +133,12 @@ simple process of 4 steps::
 
 Changelog
 =========
+
+0.6 (not released yet)
+----------------------
+
+* Fix support of ancient pip versions
+
 
 0.5 (2015-01-07)
 ----------------

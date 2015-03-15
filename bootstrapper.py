@@ -43,7 +43,7 @@ except ImportError:
 __author__ = 'Igor Davydenko'
 __license__ = 'BSD License'
 __script__ = 'bootstrapper'
-__version__ = '0.6.dev0'
+__version__ = '1.0.dev0'
 
 
 BOOTSTRAPPER_TEST_KEY = 'BOOTSTRAPPER_TEST'

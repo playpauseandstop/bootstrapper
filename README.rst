@@ -134,7 +134,7 @@ simple process of 4 steps::
 Changelog
 =========
 
-0.6 (2015-03-15)
+1.0 (not released yet)
 ----------------------
 
 * Fix support of ancient pip versions

@@ -190,7 +190,8 @@ def get_temp_streams():
             tempfile.TemporaryFile('w+', **kwargs))
 
 
-def install(env, requirements, args, ignore_activated=False, quiet=False):
+def install(env, requirements, args, ignore_activated=False,
+            install_dev_requirements=False, quiet=False):
     """Install library or project into virtual environment.
 
     :param env: Use given virtual environment name.
@@ -199,6 +200,9 @@ def install(env, requirements, args, ignore_activated=False, quiet=False):
     :param ignore_activated:
         Do not run pip inside already activated virtual environment. By
         default: False
+    :param install_dev_requirements:
+        When enabled install prefixed or suffixed dev requirements after
+        original installation process completed. By default: False
     :param quiet: Do not output message to terminal. By default: False
     """
     if os.path.isfile(requirements):
@@ -219,6 +223,51 @@ def install(env, requirements, args, ignore_activated=False, quiet=False):
     if not quiet:
         print()
 
+    # Attempt to install development requirements
+    if install_dev_requirements and label == 'project' and result:
+        dev_requirements = None
+        dirname = os.path.dirname(requirements)
+        basename, ext = os.path.splitext(os.path.basename(requirements))
+
+        # Possible dev requirements files:
+        #
+        # * <requirements>-dev.<ext>
+        # * dev-<requirements>.<ext>
+        # * <requirements>_dev.<ext>
+        # * dev_<requirements>.<ext>
+        # * <requirements>dev.<ext>
+        # * dev<requirements>.<ext>
+        #
+        # Where <requirements> is basename of given requirements file to use
+        # and <ext> is its extension.
+        for delimiter in ('-', '_', ''):
+            filename = os.path.join(
+                dirname, ''.join((basename, delimiter, 'dev', ext))
+            )
+            if os.path.isfile(filename):
+                dev_requirements = filename
+                break
+
+            filename = os.path.join(
+                dirname, ''.join(('dev', delimiter, basename, ext))
+            )
+            if os.path.isfile(filename):
+                dev_requirements = filename
+                break
+
+        # If at least one dev requirements file found, install dev requirements
+        if dev_requirements:
+            if not quiet:
+                print('== Install dev requirements ==')
+
+            pip_cmd(env,
+                    ('install', '-r', dev_requirements),
+                    ignore_activated,
+                    echo=not quiet)
+
+            if not quiet:
+                print()
+
     return result
 
 
@@ -234,8 +283,7 @@ def iterkeys(data, **kwargs):
 
 @error_handler
 def main(*args):
-    r"""
-    Bootstrap Python projects and libraries with virtualenv and pip.
+    r"""Bootstrap Python projects and libraries with virtualenv and pip.
 
     Also check system requirements before bootstrap and run post bootstrap
     hook if any.
@@ -275,6 +323,7 @@ def main(*args):
         bootstrap['requirements'],
         pip_args,
         bootstrap['ignore_activated'],
+        bootstrap['install_dev_requirements'],
         bootstrap['quiet']
     ):
         # Exist if couldn't install requirements into venv
@@ -321,7 +370,15 @@ def parse_args(args):
     parser.add_argument(
         '-r', '--requirements',
         help='Path to requirements file. By default: {0}'.
-             format(CONFIG[__script__]['requirements']))
+             format(CONFIG[__script__]['requirements'])
+    )
+    parser.add_argument(
+        '-d', '--install-dev-requirements', action='store_true', default=None,
+        help='Install prefixed or suffixed "dev" requirements after '
+             'installation of original requirements file completed without '
+             'errors. This flag makes sense only for bootstrapping projects '
+             'and would be ignored for bootstrapping libraries.'
+    )
     parser.add_argument(
         '-C', '--hook', help='Execute this hook after bootstrap process.'
     )
@@ -499,8 +556,8 @@ def read_config(filename, args):
 
     # Update bootstrap config from parsed args
     keys = set((
-        'env', 'hook', 'ignore_activated', 'pre_requirements', 'quiet',
-        'recreate', 'requirements'
+        'env', 'hook', 'install_dev_requirements', 'ignore_activated',
+        'pre_requirements', 'quiet', 'recreate', 'requirements'
     ))
 
     for key in keys:
@@ -634,9 +691,7 @@ def smart_str(value, encoding='utf-8', errors='strict'):
 
 
 def which(executable):
-    """
-    Shortcut to check whether executable available in current environment or
-    not.
+    """Shortcut to check whether executable available in current env or not.
 
     :param executable: Executable to check.
     """

@@ -14,6 +14,7 @@ except ImportError:
     import unittest
 
 from contextlib import contextmanager
+from random import choice, randint
 
 import pip
 
@@ -43,9 +44,13 @@ class TestBootstrapper(unittest.TestCase):
     def tearDown(self):
         if bootstrapper.BOOTSTRAPPER_TEST_KEY in os.environ:
             os.environ.pop(bootstrapper.BOOTSTRAPPER_TEST_KEY)
+
         if self.config is not None:
             self.delete(self.config)
-        self.delete(self.requirements, bootstrapper.safe_path(self.venv))
+
+        self.delete(self.requirements,
+                    self.dev_requirements,
+                    bootstrapper.safe_path(self.venv))
 
     def delete(self, *files):
         for item in files:
@@ -54,10 +59,25 @@ class TestBootstrapper(unittest.TestCase):
             elif os.path.isdir(item):
                 shutil.rmtree(item)
 
-    def init_requirements(self, *lines):
-        with open(self.requirements, 'w+') as handler:
+    @property
+    def dev_requirements(self):
+        if not hasattr(self, '_dev_requirements'):
+            delimiter = choice(('-', '_', ''))
+            prefixed = randint(0, 1)
+
+            basename, ext = os.path.splitext(self.requirements)
+            parts = ((basename, delimiter, 'dev', ext)
+                     if prefixed
+                     else ('dev', delimiter, basename, ext))
+            setattr(self, '_dev_requirements', ''.join(parts))
+
+        return getattr(self, '_dev_requirements')
+
+    def init_requirements(self, *lines, **kwargs):
+        filename = kwargs.pop('filename', None) or self.requirements
+        with open(filename, 'w+') as handler:
             handler.write('\n'.join(lines))
-        self.assertTrue(os.path.isfile(self.requirements))
+        self.assertTrue(os.path.isfile(filename))
 
     def message(self, out, err, echo=False):
         output = '\n'.join(('[STDOUT]', out, '', '[STDERR]', err))
@@ -104,6 +124,21 @@ class TestBootstrapper(unittest.TestCase):
         finally:
             out.close()
             err.close()
+
+    def test_install_dev_requirements(self):
+        self.assertFalse(os.path.isdir(self.venv))
+        self.init_requirements('ordereddict==1.1')
+        self.init_requirements('MiniMock==1.2.8',
+                               filename=self.dev_requirements)
+
+        out, err = self.run_cmd('bootstrap -d')
+        base_debug = self.message(out, err)
+        self.assertTrue(os.path.isdir(self.venv), base_debug)
+
+        pip_out, pip_err = self.run_cmd('pip freeze')
+        debug = '\n'.join((base_debug, self.message(pip_out, pip_err)))
+        self.assertIn('ordereddict==1.1', pip_out, debug)
+        self.assertIn('MiniMock==1.2.8', pip_out, debug)
 
     def test_install_error(self):
         os.environ.pop(bootstrapper.BOOTSTRAPPER_TEST_KEY)
@@ -173,6 +208,7 @@ class TestBootstrapper(unittest.TestCase):
     def test_project_bootstrap(self):
         self.assertFalse(os.path.isdir(self.venv))
         self.init_requirements('ordereddict==1.1')
+
         out, err = self.run_cmd('bootstrap')
         base_debug = self.message(out, err)
         self.assertTrue(os.path.isdir(self.venv), base_debug)

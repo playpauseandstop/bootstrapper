@@ -80,7 +80,8 @@ Usage
     $ bootstrapper --help
     usage: bootstrapper [-h] [--version] [-c CONFIG]
                         [-p PRE_REQUIREMENTS [PRE_REQUIREMENTS ...]] [-e ENV]
-                        [-r REQUIREMENTS] [-C HOOK] [--recreate] [-q]
+                        [-r REQUIREMENTS] [-d] [-C HOOK] [--ignore-activated]
+                        [--recreate] [-q]
 
     Bootstrap Python projects and libraries with virtualenv and pip.
 
@@ -95,7 +96,14 @@ Usage
       -r REQUIREMENTS, --requirements REQUIREMENTS
                             Path to requirements file. By default:
                             requirements.txt
+      -d, --install-dev-requirements
+                            Install prefixed or suffixed "dev" requirements after
+                            installation of original requirements file completed
+                            without errors. This flag makes sense only for
+                            bootstrapping projects and would be ignored for
+                            bootstrapping libraries.
       -C HOOK, --hook HOOK  Execute this hook after bootstrap process.
+      --ignore-activated    Ignore pre-activated virtualenv, like on Travis CI.
       --recreate            Recreate virtualenv on every run.
       -q, --quiet           Minimize output, show only error messages.
 
@@ -137,9 +145,10 @@ Changelog
 1.0 (not released yet)
 ----------------------
 
+* Ability to install dev requirements after installing original requirements
+  done without errors
 * Fix support of ancient pip versions
 * Provide docstrings to internal bootstrapper functions
-
 
 0.5 (2015-01-07)
 ----------------

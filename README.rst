@@ -142,8 +142,8 @@ simple process of 4 steps::
 Changelog
 =========
 
-1.0 (not released yet)
-----------------------
+1.0.0 (not released yet)
+------------------------
 
 * Ability to install dev requirements after installing original requirements
   done without errors

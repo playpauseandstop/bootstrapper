@@ -98,10 +98,8 @@ Usage
                             requirements.txt
       -d, --install-dev-requirements
                             Install prefixed or suffixed "dev" requirements after
-                            installation of original requirements file completed
-                            without errors. This flag makes sense only for
-                            bootstrapping projects and would be ignored for
-                            bootstrapping libraries.
+                            installation of original requirements file or library
+                            completed without errors.
       -C HOOK, --hook HOOK  Execute this hook after bootstrap process.
       --ignore-activated    Ignore pre-activated virtualenv, like on Travis CI.
       --recreate            Recreate virtualenv on every run.

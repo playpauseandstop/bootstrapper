@@ -224,7 +224,7 @@ def install(env, requirements, args, ignore_activated=False,
         print()
 
     # Attempt to install development requirements
-    if install_dev_requirements and label == 'project' and result:
+    if install_dev_requirements and result:
         dev_requirements = None
         dirname = os.path.dirname(requirements)
         basename, ext = os.path.splitext(os.path.basename(requirements))
@@ -260,10 +260,10 @@ def install(env, requirements, args, ignore_activated=False,
             if not quiet:
                 print('== Install dev requirements ==')
 
-            pip_cmd(env,
-                    ('install', '-r', dev_requirements),
-                    ignore_activated,
-                    echo=not quiet)
+            result = pip_cmd(env,
+                             ('install', '-r', dev_requirements),
+                             ignore_activated,
+                             echo=not quiet)
 
             if not quiet:
                 print()
@@ -375,9 +375,8 @@ def parse_args(args):
     parser.add_argument(
         '-d', '--install-dev-requirements', action='store_true', default=None,
         help='Install prefixed or suffixed "dev" requirements after '
-             'installation of original requirements file completed without '
-             'errors. This flag makes sense only for bootstrapping projects '
-             'and would be ignored for bootstrapping libraries.'
+             'installation of original requirements file or library completed '
+             'without errors.'
     )
     parser.add_argument(
         '-C', '--hook', help='Execute this hook after bootstrap process.'

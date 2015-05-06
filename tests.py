@@ -107,7 +107,7 @@ class TestBootstrapper(unittest.TestCase):
 
     def run_cmd(self, cmd):
         kwargs = {}
-        on_travis = 'TRAVIS_PYTHON_VERSION' in os.environ
+        inside_tox = 'BOOTSTRAPPER_TOX' in os.environ
         out, err = bootstrapper.get_temp_streams()
 
         if cmd.startswith('bootstrap'):
@@ -116,11 +116,11 @@ class TestBootstrapper(unittest.TestCase):
             args += ('-e', self.venv, '-r', self.requirements)
             if self.config:
                 args += ('-c', self.config)
-            if on_travis:
+            if inside_tox:
                 args += ('--ignore-activated', )
         elif cmd.startswith('pip '):
             func = bootstrapper.pip_cmd
-            args = (self.venv, cmd[4:].split(), on_travis, )
+            args = (self.venv, cmd[4:].split(), inside_tox, )
             kwargs['echo'] = True
         else:
             assert False, 'Command {0!r} is not supported!'.format(cmd)

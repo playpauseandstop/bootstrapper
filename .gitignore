@@ -3,9 +3,9 @@
 *.pyc
 *.pyo
 
+.tox/
 build/
 dist/
-
 test-env/
 venv/
 

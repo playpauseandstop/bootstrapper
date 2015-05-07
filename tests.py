@@ -86,15 +86,6 @@ class TestBootstrapper(unittest.TestCase):
         else:
             return output
 
-    def prepare_library_bootstrap(self):
-        # We need to allow install argparse from external
-        pip_version_info = tuple(
-            map(int, getattr(pip, '__version__', '1.1').split('.')))[:2]
-        if sys.version_info[:2] < (2, 7) and pip_version_info > (1, 4):
-            self.config = '{0}.cfg'.format(self.venv.rstrip('/'))
-            with open(self.config, 'w+') as handler:
-                handler.write('[pip]\nallow_external = argparse\n')
-
     @contextmanager
     def redirect_streams(self, out, err):
         original_out, original_err = sys.stdout, sys.stderr
@@ -135,8 +126,6 @@ class TestBootstrapper(unittest.TestCase):
             err.close()
 
     def test_install_dev_requirements_library(self):
-        self.prepare_library_bootstrap()
-
         self.assertFalse(os.path.isdir(self.venv))
         self.init_requirements('MiniMock==1.2.8',
                                filename=self.dev_requirements)
@@ -179,8 +168,6 @@ class TestBootstrapper(unittest.TestCase):
         self.assertIn('Full log stored to ', err, debug)
 
     def test_library_bootstrap(self):
-        self.prepare_library_bootstrap()
-
         self.assertFalse(os.path.isdir(self.venv))
         out, err = self.run_cmd('bootstrap')
         base_debug = self.message(out, err)

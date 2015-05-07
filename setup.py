@@ -58,7 +58,7 @@ setup(
         ]
     },
     install_requires=list(filter(None, [
-        'argparse==1.2.1' if sys.version_info[:2] < (2, 7) else None,
+        'argparse>=1.3.0' if sys.version_info[:2] < (2, 7) else None,
         'virtualenv>=1.10',
     ])),
     py_modules=[

@@ -260,10 +260,10 @@ def install(env, requirements, args, ignore_activated=False,
             if not quiet:
                 print('== Install dev requirements ==')
 
-            result = pip_cmd(env,
-                             ('install', '-r', dev_requirements),
-                             ignore_activated,
-                             echo=not quiet)
+            result = not pip_cmd(env,
+                                 ('install', '-r', dev_requirements),
+                                 ignore_activated,
+                                 echo=not quiet)
 
             if not quiet:
                 print()

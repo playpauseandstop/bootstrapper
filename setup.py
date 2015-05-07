@@ -20,6 +20,7 @@ with open(rel('README.rst')) as readme_file:
 with open(rel('bootstrapper.py')) as bootstrapper_file:
     INIT_PY = bootstrapper_file.read()
 
+IS_PY26 = sys.version_info[:2] < (2, 7)
 VERSION = re.findall("__version__ = '([^']+)'", INIT_PY)[0]
 
 
@@ -58,7 +59,7 @@ setup(
         ]
     },
     install_requires=list(filter(None, [
-        'argparse>=1.3.0' if sys.version_info[:2] < (2, 7) else None,
+        'argparse>=1.3.0' if IS_PY26 else None,
         'virtualenv>=1.10',
     ])),
     py_modules=[
@@ -66,6 +67,6 @@ setup(
     ],
     test_suite='tests',
     tests_require=list(filter(None, [
-        'unittest2==0.5.1' if sys.version_info[:2] < (2, 7) else None,
+        'unittest2==0.5.1' if IS_PY26 else None,
     ]))
 )

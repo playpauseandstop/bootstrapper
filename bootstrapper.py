@@ -43,7 +43,7 @@ except ImportError:
 __author__ = 'Igor Davydenko'
 __license__ = 'BSD License'
 __script__ = 'bootstrapper'
-__version__ = '1.0.0a1'
+__version__ = '1.0.0a2'
 
 
 BOOTSTRAPPER_TEST_KEY = 'BOOTSTRAPPER_TEST'
@@ -126,7 +126,7 @@ def create_env(env, args, recreate=False, ignore_activated=False, quiet=False):
     env_exists = os.path.isdir(env)
 
     if not quiet:
-        print('== Step 1. Create virtual environment ==')
+        print_message('== Step 1. Create virtual environment ==')
 
     if (
         recreate or (not inside_env and not env_exists)
@@ -140,14 +140,14 @@ def create_env(env, args, recreate=False, ignore_activated=False, quiet=False):
             message = 'Working inside of virtual environment, done...'
         else:
             message = 'Virtual environment {0!r} already created, done...'
-        print(message.format(env))
+        print_message(message.format(env))
 
     if cmd:
         with disable_error_handler():
             result = not run_cmd(cmd, echo=not quiet)
 
     if not quiet:
-        print()
+        print_message()
 
     return result
 
@@ -213,7 +213,7 @@ def install(env, requirements, args, ignore_activated=False,
         label = 'library'
 
     if not quiet:
-        print('== Step 2. Install {0} =='.format(label))
+        print_message('== Step 2. Install {0} =='.format(label))
 
     result = not pip_cmd(env,
                          ('install',) + args,
@@ -221,7 +221,7 @@ def install(env, requirements, args, ignore_activated=False,
                          echo=not quiet)
 
     if not quiet:
-        print()
+        print_message()
 
     # Attempt to install development requirements
     if install_dev_requirements and result:
@@ -258,7 +258,7 @@ def install(env, requirements, args, ignore_activated=False,
         # If at least one dev requirements file found, install dev requirements
         if dev_requirements:
             if not quiet:
-                print('== Install dev requirements ==')
+                print_message('== Install dev requirements ==')
 
             result = not pip_cmd(env,
                                  ('install', '-r', dev_requirements),
@@ -266,7 +266,7 @@ def install(env, requirements, args, ignore_activated=False,
                                  echo=not quiet)
 
             if not quiet:
-                print()
+                print_message()
 
     return result
 
@@ -334,7 +334,7 @@ def main(*args):
 
     # All OK!
     if not bootstrap['quiet']:
-        print('All OK!')
+        print_message('All OK!')
 
     # False means everything went alright, exit code: 0
     return False
@@ -473,6 +473,20 @@ def print_error(message, wrap=True):
     return print(colorizer(message), file=sys.stderr)
 
 
+def print_message(message=None):
+    """Print message via ``subprocess.call`` function.
+
+    This helps to ensure consistent output and avoid situations where print
+    messages actually shown after messages from all inner threads.
+
+    :param message: Text message to print.
+    """
+    kwargs = {'stdout': sys.stdout,
+              'stderr': sys.stderr,
+              'shell': True}
+    return subprocess.call('echo "{0}"'.format(message or ''), **kwargs)
+
+
 def read_config(filename, args):
     """
     Read and parse configuration file. By default, ``filename`` is relative
@@ -591,7 +605,7 @@ def run_cmd(cmd, echo=False, fail_silently=False, **kwargs):
     if echo:
         cmd_str = cmd if isinstance(cmd, string_types) else ' '.join(cmd)
         kwargs['stdout'], kwargs['stderr'] = sys.stdout, sys.stderr
-        print('$ {0}'.format(cmd_str))
+        print_message('$ {0}'.format(cmd_str))
     else:
         out, err = get_temp_streams()
         kwargs['stdout'], kwargs['stderr'] = out, err
@@ -626,7 +640,7 @@ def run_hook(hook, config, quiet=False):
         return True
 
     if not quiet:
-        print('== Step 3. Run post-bootstrap hook ==')
+        print_message('== Step 3. Run post-bootstrap hook ==')
 
     result = not run_cmd(prepare_args(hook, config),
                          echo=not quiet,
@@ -634,7 +648,7 @@ def run_hook(hook, config, quiet=False):
                          shell=True)
 
     if not quiet:
-        print()
+        print_message()
 
     return result
 

@@ -212,19 +212,8 @@ def install(env, requirements, args, ignore_activated=False,
         args += ('-U', '-e', '.')
         label = 'library'
 
-    if not quiet:
-        print_message('== Step 2. Install {0} =='.format(label))
-
-    result = not pip_cmd(env,
-                         ('install',) + args,
-                         ignore_activated,
-                         echo=not quiet)
-
-    if not quiet:
-        print_message()
-
     # Attempt to install development requirements
-    if install_dev_requirements and result:
+    if install_dev_requirements:
         dev_requirements = None
         dirname = os.path.dirname(requirements)
         basename, ext = os.path.splitext(os.path.basename(requirements))
@@ -257,16 +246,18 @@ def install(env, requirements, args, ignore_activated=False,
 
         # If at least one dev requirements file found, install dev requirements
         if dev_requirements:
-            if not quiet:
-                print_message('== Install dev requirements ==')
+            args += ('-r', dev_requirements)
 
-            result = not pip_cmd(env,
-                                 ('install', '-r', dev_requirements),
-                                 ignore_activated,
-                                 echo=not quiet)
+    if not quiet:
+        print_message('== Step 2. Install {0} =='.format(label))
 
-            if not quiet:
-                print_message()
+    result = not pip_cmd(env,
+                         ('install', ) + args,
+                         ignore_activated,
+                         echo=not quiet)
+
+    if not quiet:
+        print_message()
 
     return result
 
@@ -426,6 +417,12 @@ def pip_cmd(env, cmd, ignore_activated=False, **kwargs):
 
     if not os.path.isfile(pip_path):
         raise OSError('No pip found at {0!r}'.format(pip_path))
+
+    # Disable pip version check in tests
+    if BOOTSTRAPPER_TEST_KEY in os.environ and cmd[0] == 'install':
+        cmd = list(cmd)
+        cmd.insert(1, '--disable-pip-version-check')
+        cmd = tuple(cmd)
 
     with disable_error_handler():
         return run_cmd((pip_path, ) + cmd, **kwargs)

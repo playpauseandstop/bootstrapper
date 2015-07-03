@@ -6,15 +6,15 @@ bootstrapper
     :target: https://travis-ci.org/playpauseandstop/bootstrapper
     :alt: Travis CI
 
-.. image:: https://pypip.in/version/bootstrapper/badge.svg?style=flat
-    :target: https://pypi.python.org/pypi/bootstrapper/
+.. image:: https://img.shields.io/pypi/v/bootstrapper.svg
+    :target: https://warehouse.python.org/project/bootstrapper/
     :alt: Latest Version
 
-.. image:: https://pypip.in/py_versions/bootstrapper/badge.svg?style=flat
-    :target: https://pypi.python.org/pypi/bootstrapper/
+.. image:: https://img.shields.io/pypi/pyversions/bootstrapper.svg
+    :target: https://warehouse.python.org/project/bootstrapper/
     :alt: Python versions
 
-.. image:: https://pypip.in/license/bootstrapper/badge.svg?style=flat
+.. image:: https://img.shields.io/pypi/l/bootstrapper.svg
     :target: https://github.com/playpauseandstop/bootstrapper/blob/master/LICENSE
     :alt: BSD License
 

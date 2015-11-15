@@ -5,6 +5,7 @@
 
 .tox/
 build/
+docs/_build/
 dist/
 test-env/
 venv/

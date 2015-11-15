@@ -2,7 +2,7 @@
 bootstrapper
 ============
 
-.. image:: https://travis-ci.org/playpauseandstop/bootstrapper.png?branch=master&style=flat
+.. image:: https://img.shields.io/travis/playpauseandstop/bootstrapper/master.svg
     :target: https://travis-ci.org/playpauseandstop/bootstrapper
     :alt: Travis CI
 

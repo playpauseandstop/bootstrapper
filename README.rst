@@ -18,6 +18,10 @@ bootstrapper
     :target: https://github.com/playpauseandstop/bootstrapper/blob/master/LICENSE
     :alt: BSD License
 
+.. image:: https://readthedocs.org/projects/bootstrapper/badge/?version=latest
+    :target: http://bootstrapper.readthedocs.org/en/latest/
+    :alt: Documentation
+
 Bootstrap Python projects or libraries by checking system pre-requirements if
 necessary, creating virtual environment, installing all requirements there and
 finally execute post-bootstrap hooks if any.
@@ -28,4 +32,4 @@ finally execute post-bootstrap hooks if any.
 * Source, issues, and pull requests `on GitHub
   <https://github.com/playpauseandstop/bootstrapper>`_
 * Install with ``pip install bootstrapper``
-* Use with ``python -m bootstrapper ...``
+* Run with ``python -m bootstrapper ...``

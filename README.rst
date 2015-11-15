@@ -32,4 +32,4 @@ finally execute post-bootstrap hooks if any.
 * Source, issues, and pull requests `on GitHub
   <https://github.com/playpauseandstop/bootstrapper>`_
 * Install with ``pip install bootstrapper``
-* Run with ``python -m bootstrapper ...``
+* Run with ``python -m bootstrapper``

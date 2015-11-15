@@ -133,9 +133,9 @@ Changelog
 * Fix support of ancient pip versions
 * Provide docstrings to internal bootstrapper functions
 * Discount support of ``bootstrapper-X.Y`` scripts
-* Change preferable method of running bootstrapper to ``python -m bootstrapper``
-  instead of just ``bootstrapper``
-* Moving documentation to `Read the Docs <http://bootstrapper.readthedocs.org/>`_
+* Change preferable method of running script from ``bootstrapper`` to
+  ``python -m bootstrapper``
+* Move documentation to `Read the Docs <http://bootstrapper.readthedocs.org/>`_
 
 0.5 (2015-01-07)
 ----------------

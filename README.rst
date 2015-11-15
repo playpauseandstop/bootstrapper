@@ -32,7 +32,7 @@ Installation
 
 As easy as::
 
-    # pip install bootstrapper
+    $ pip install bootstrapper
 
 License
 =======
@@ -43,7 +43,7 @@ License
 Configuration
 =============
 
-You may configure any option of ``bootstrapper``, ``virtualenv`` and ``pip``
+You can configure any option of ``bootstrapper``, ``virtualenv`` and ``pip``
 by setting it in ``bootstrap.cfg`` file. For example::
 
     [bootstrapper]
@@ -56,7 +56,7 @@ by setting it in ``bootstrap.cfg`` file. For example::
     [virtualenv]
     quiet = True
 
-By default, next configuration would be used::
+By default, next configuration will be used::
 
     [bootstrapper]
     env = env
@@ -66,7 +66,7 @@ By default, next configuration would be used::
     [pip]
     download_cache = ~/.bootstrapper/pip-cache/
 
-.. note:: Download cache option would be used only for pip 1.x as pip 6.0
+.. note:: Download cache option will be used only for pip 1.x as pip 6.0
    introduce changes to caching and don't use this option anymore.
 
 Your configuration or arguments from command line overwrite default options,
@@ -77,11 +77,11 @@ Usage
 
 ::
 
-    $ bootstrapper --help
-    usage: bootstrapper [-h] [--version] [-c CONFIG]
-                        [-p PRE_REQUIREMENTS [PRE_REQUIREMENTS ...]] [-e ENV]
-                        [-r REQUIREMENTS] [-d] [-C HOOK] [--ignore-activated]
-                        [--recreate] [-q]
+    $ python -m bootstrapper --help
+    usage: bootstrapper.py [-h] [--version] [-c CONFIG]
+                           [-p PRE_REQUIREMENTS [PRE_REQUIREMENTS ...]] [-e ENV]
+                           [-r REQUIREMENTS] [-d] [-C HOOK] [--ignore-activated]
+                           [--recreate] [-q]
 
     Bootstrap Python projects and libraries with virtualenv and pip.
 
@@ -143,10 +143,12 @@ Changelog
 1.0.0 (not released yet)
 ------------------------
 
+* Migrate to semantic versioning
 * Ability to install dev requirements after installing original requirements
   done without errors
 * Fix support of ancient pip versions
 * Provide docstrings to internal bootstrapper functions
+* Discount support of ``bootstrapper-X.Y`` scripts,
 
 0.5 (2015-01-07)
 ----------------

@@ -20,7 +20,7 @@ with open(rel('README.rst')) as readme_file:
 with open(rel('bootstrapper.py')) as bootstrapper_file:
     INIT_PY = bootstrapper_file.read()
 
-IS_PY26 = sys.version_info[:2] < (2, 7)
+IS_PY26 = sys.version_info[:2] == (2, 6)
 VERSION = re.findall("__version__ = '([^']+)'", INIT_PY)[0]
 
 
@@ -54,8 +54,6 @@ setup(
     entry_points={
         'console_scripts': [
             'bootstrapper=bootstrapper:main',
-            'bootstrapper-{0}.{1}=bootstrapper:main'.
-            format(*sys.version_info[:2]),
         ]
     },
     install_requires=list(filter(None, [

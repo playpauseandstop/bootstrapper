@@ -124,6 +124,11 @@ simple process of 4 steps::
 Changelog
 =========
 
+1.1.0 (2018-04-20)
+------------------
+
+* Fix installing requirements with ``pip==10.0`` and higher
+
 1.0.0 (2015-11-15)
 ------------------
 

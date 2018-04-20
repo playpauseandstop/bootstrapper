@@ -179,7 +179,7 @@ class TestBootstrapper(unittest.TestCase):
         pip_out, pip_err = self.run_cmd('pip freeze')
         debug = '\n'.join((base_debug, self.message(pip_out, pip_err)))
         self.assertIn('playpauseandstop/bootstrapper.git@', pip_out, debug)
-        self.assertIn('#egg=bootstrapper-', pip_out, debug)
+        self.assertIn('#egg=bootstrapper', pip_out, debug)
 
     def test_no_config_error(self):
         self.config = '/path/does-not-exist.cfg'

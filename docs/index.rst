@@ -128,6 +128,7 @@ Changelog
 ------------------
 
 * Fix installing requirements with ``pip==10.0`` and higher
+* Drop support for Python 2.6, 3.2 & 3.3
 
 1.0.0 (2015-11-15)
 ------------------

@@ -43,7 +43,7 @@ except ImportError:
 __author__ = 'Igor Davydenko'
 __license__ = 'BSD License'
 __script__ = 'bootstrapper'
-__version__ = '1.0.0'
+__version__ = '1.1.0'
 
 
 BOOTSTRAPPER_TEST_KEY = 'BOOTSTRAPPER_TEST'
@@ -512,7 +512,7 @@ def read_config(filename, args):
     sections = set(iterkeys(default))
 
     # Append download-cache for old pip versions
-    if int(getattr(pip, '__version__', '1.x')[0]) < 6:
+    if int(getattr(pip, '__version__', '1.x').split('.')[0]) < 6:
         default['pip']['download_cache'] = safe_path(os.path.expanduser(
             os.path.join('~', '.{0}'.format(__script__), 'pip-cache')
         ))

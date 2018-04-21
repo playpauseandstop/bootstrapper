@@ -26,7 +26,7 @@ Bootstrap Python projects or libraries by checking system pre-requirements if
 necessary, creating virtual environment, installing all requirements there and
 finally execute post-bootstrap hooks if any.
 
-* Works on Python 2.6+
+* Works on Python 2.7 and 3.4+
 * BSD licensed
 * Latest documentation `on Read the Docs <http://bootstrapper.readthedocs.org/>`_
 * Source, issues, and pull requests `on GitHub

@@ -2,6 +2,9 @@
 bootstrapper
 ============
 
+**IMPORTANT:** No longer in development. Consider to switch to much more
+powerful `poetry <https://poetry.eustace.io>`_ tool.
+
 .. image:: https://img.shields.io/travis/playpauseandstop/bootstrapper/master.svg
     :target: https://travis-ci.org/playpauseandstop/bootstrapper
     :alt: Travis CI

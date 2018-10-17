@@ -2,6 +2,9 @@
 bootstrapper
 ============
 
+**IMPORTANT:** No longer in development. Consider to switch to much more
+powerful `poetry <https://poetry.eustace.io>`_ tool.
+
 Bootstrap Python projects or libraries by checking system pre-requirements if
 necessary, creating virtual environment, installing all requirements there and
 finally execute post-bootstrap hooks if any.
@@ -9,7 +12,7 @@ finally execute post-bootstrap hooks if any.
 Requirements
 ============
 
-* `Python <http://www.python.org/>`_ 2.6+
+* `Python <http://www.python.org/>`_ 2.7 and 3.4+
 
 Installation
 ============

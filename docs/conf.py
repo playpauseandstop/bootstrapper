@@ -69,7 +69,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'bootstrapper'
-copyright = '2015, Igor Davydenko'
+copyright = '2015-2018, Igor Davydenko'
 author = 'Igor Davydenko'
 
 # The version info for the project you're documenting, acts as replacement for

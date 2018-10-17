@@ -2,8 +2,8 @@
 bootstrapper
 ============
 
-**IMPORTANT:** No longer in development. Consider to switch to much more
-powerful `poetry <https://poetry.eustace.io>`_ tool.
+**IMPORTANT:** No longer in development. Use
+`poetry <https://poetry.eustace.io>`_ instead.
 
 .. image:: https://img.shields.io/travis/playpauseandstop/bootstrapper/master.svg
     :target: https://travis-ci.org/playpauseandstop/bootstrapper

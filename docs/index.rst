@@ -2,8 +2,8 @@
 bootstrapper
 ============
 
-**IMPORTANT:** No longer in development. Consider to switch to much more
-powerful `poetry <https://poetry.eustace.io>`_ tool.
+**IMPORTANT:** No longer in development. Use
+`poetry <https://poetry.eustace.io>`_ instead.
 
 Bootstrap Python projects or libraries by checking system pre-requirements if
 necessary, creating virtual environment, installing all requirements there and
